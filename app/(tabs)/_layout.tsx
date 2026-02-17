@@ -1,61 +1,111 @@
-// template
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { NativeTabs, Icon, Label, Badge } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
-import { SymbolView } from "expo-symbols";
-import { Platform, StyleSheet, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-
 import Colors from "@/constants/colors";
 
-//IMPORTANT: iOS 26 Exists, feel free to use NativeTabs for native tabs with liquid glass support.
 function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Home</Label>
+        <Label>Inicio</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="membership">
+        <Icon sf={{ default: "person.text.rectangle", selected: "person.text.rectangle.fill" }} />
+        <Label>Socio</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="tickets">
+        <Icon sf={{ default: "ticket", selected: "ticket.fill" }} />
+        <Label>Entradas</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="store">
+        <Icon sf={{ default: "bag", selected: "bag.fill" }} />
+        <Label>Tienda</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="more">
+        <Icon sf={{ default: "ellipsis.circle", selected: "ellipsis.circle.fill" }} />
+        <Label>Mas</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
 
 function ClassicTabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const isWeb = Platform.OS === "web";
+  const isIOS = Platform.OS === "ios";
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.light.tint,
-        tabBarInactiveTintColor: Colors.light.tabIconDefault,
-        headerShown: true,
+        headerShown: false,
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.tabInactive,
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: Platform.select({
-            ios: "transparent",
-            android: isDark ? "#000" : "#fff",
-          }),
-          borderTopWidth: 0,
+          backgroundColor: isIOS ? "transparent" : Colors.background,
+          borderTopWidth: isWeb ? 1 : 0,
+          borderTopColor: Colors.divider,
           elevation: 0,
+          ...(isWeb ? { height: 84 } : {}),
         },
         tabBarBackground: () =>
-          Platform.OS === "ios" ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
+          isIOS ? (
+            <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+          ) : isWeb ? (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.background }]} />
           ) : null,
+        tabBarLabelStyle: {
+          fontFamily: "Inter_500Medium",
+          fontSize: 10,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <SymbolView name="house" tintColor={color} size={24} />
+          title: "Inicio",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="membership"
+        options={{
+          title: "Socio",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="card" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="tickets"
+        options={{
+          title: "Entradas",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="ticket" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="store"
+        options={{
+          title: "Tienda",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="bag" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: "Mas",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="ellipsis-horizontal-circle" size={size} color={color} />
           ),
         }}
       />

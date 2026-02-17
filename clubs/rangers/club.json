@@ -1,0 +1,35 @@
+{
+  "tenantKey": "rangers",
+  "clubId": "club_rangers_001",
+  "displayName": "Rangers FC",
+  "appName": "Rojinegro App",
+  "theme": {
+    "primary": "#E31E24",
+    "primaryDark": "#B71518",
+    "secondary": "#000000",
+    "background": "#0A0A0A",
+    "surface": "#151515",
+    "text": "#FFFFFF",
+    "accent": "#FFD700"
+  },
+  "logo": "rangers_crest.png",
+  "deepLinkDomain": "rangers.clubapp.com",
+  "features": {
+    "home": true,
+    "membershipId": true,
+    "tickets": true,
+    "merch": true,
+    "benefits": true,
+    "experiences": true,
+    "notifications": true,
+    "academy": false
+  },
+  "legal": {
+    "privacyPolicy": "https://rangers.club/privacy",
+    "termsOfService": "https://rangers.club/terms"
+  },
+  "support": {
+    "email": "soporte@rangers.club",
+    "ticketsFaq": "https://rangers.club/faq/tickets"
+  }
+}
