@@ -1,0 +1,249 @@
+Build a white-label, multi-tenant football club mobile app (one app per club in the stores) using React Native + Expo for iOS + Android. The app must match the attached UI references (dark theme, rojo/rojinegro style, card-based modules, bottom tab bar, clean modern typography).
+
+1) Product Goal
+
+This is the fan-facing “club super app”: a single place where a fan can:
+
+Hold and display a digital membership ID
+
+Buy tickets (including seat selection)
+
+Buy merch
+
+Access exclusive benefits/discounts
+
+Book experiences (events like meet & greet, training center visits)
+
+Receive and browse push notifications
+
+(Optional future) Access youth academy / school info and enrollment management
+
+The platform behind it is multi-tenant: multiple clubs use the same system, but each club has its own branding, data, and modules.
+
+2) White-label / Multi-app Requirements
+
+We will publish a separate app per club (e.g., “Rojinegro App”, “Palestino Oficial”, etc.), but maintain one shared codebase.
+
+Implement a Club Pack config system:
+
+A folder per club (example /clubs/rangers/club.json) containing:
+
+tenantKey, clubId, display name
+
+theme colors, logos, fonts
+
+deep link domain
+
+feature flags/entitlements defaults
+
+At build time, the app is built with a specific tenantKey so there is no club selector in the UI.
+
+At runtime, the app calls a bootstrap endpoint to fetch:
+
+Club branding (logo, colors, typography)
+
+Enabled modules (features)
+
+Legal URLs (privacy policy, terms)
+
+Important URLs (support, tickets FAQ)
+
+3) Core Modules to Include (MVP)
+
+Implement these fan modules (each must be togglable per club via entitlements/feature flags):
+
+Home
+
+Welcome header with club name + crest
+
+Next match card (“Próximo partido”) with CTA
+
+Highlights / announcements
+
+Rangers ID / Membership Card
+
+Digital card UI exactly like reference: role (“Socio”), membership tier, member name, RUT/ID, birth date, expiration, barcode/QR
+
+Ability to zoom/open full screen
+
+“Present this card for access/benefits” text
+
+Data from backend; cache locally for offline viewing
+
+Tickets
+
+List of events / matches
+
+Ticket types, pricing, availability
+
+Seat selection view (simplified seatmap like reference; zones + dots)
+
+Cart + checkout flow
+
+Display purchased tickets, QR codes, ticket details
+
+Note: checkout can be web-based initially (secure hosted checkout) but must return to app and refresh order state.
+
+Merch Store
+
+Product grid like reference, categories, product detail
+
+Add to cart
+
+Cart screen shared with tickets (combined cart is OK)
+
+Confirm and pay
+
+Order history
+
+Benefits / Discounts
+
+“Beneficios exclusivos” feed
+
+Filters chips (e.g., TODO, COMIDA, CAFÉ)
+
+Benefit detail with redemption rules
+
+“Near you” section (optional: location-based list)
+
+Allow benefits to be restricted to members only
+
+Experiences
+
+List of experiences with limited slots
+
+Detail + reserve CTA
+
+Show “exclusive for members” + remaining seats
+
+Notifications Center
+
+In-app notification inbox (grouped by type: offers, tickets, promo, club)
+
+Push notification deep links into relevant screens
+
+4) Design Requirements (Match Provided Screens)
+
+Style:
+
+Dark UI (mostly black/charcoal background)
+
+Strong primary accent color (club red) for CTAs, selected tab, buttons
+
+Rounded cards, high contrast, clean layout, modern typography
+
+Bottom tab bar with icons; selected tab highlighted in red
+
+Minimal top bars with icons (search, menu, bell)
+
+Screens to replicate structurally (based on images):
+
+Membership card screen with barcode + member details
+
+Benefits feed with category chips + discount cards
+
+Home with “Rojinegro App” intro and next match CTA
+
+Seat selection screen with dots grid and selected seats highlighted
+
+Merch store grid with price tags + “Comprar” button
+
+Cart summary with items (tickets + merch) and “Confirmar y pagar”
+
+Academy / school screen listing “sedes disponibles” + manage enrollment CTA
+
+Experiences list with reserve buttons
+
+Notifications list with category labels + timestamps
+
+Push notification example (copy style)
+
+5) Architecture & Tech Stack
+
+Frontend:
+
+React Native + Expo
+
+TypeScript
+
+Navigation: @react-navigation (bottom tabs + stack)
+
+State: lightweight approach (React Query + Zustand OR React Query + Context)
+
+API client with typed responses
+
+Local storage for cache/offline: SecureStore for tokens, AsyncStorage/MMKV for cached bootstrap and membership card
+
+Push: Expo Notifications
+
+Deep links: Expo Linking
+
+Analytics: PostHog (include clubId, tenantKey, appBuildId) (we already use PostHog on the platform) 
+
+app-summary
+
+Backend assumptions (do not build backend, just integrate):
+
+Our platform is multi-tenant and has modules for Clubs, Events, Orders, Fans, Tickets (QR), Seatmaps, Discounts, Campaigns, Ads, Domains, FanAuth, etc. 
+
+app-summary
+
+Authentication: Fan auth with magic link (email) or OTP (define a clean flow)
+
+Endpoints should be assumed REST/JSON.
+
+6) Feature Flags / Per-club Entitlements
+
+Implement a simple entitlement system:
+
+features: { tickets: true, merch: true, benefits: true, experiences: true, membershipId: true, academy: false }
+
+UI must hide tabs/routes if disabled
+
+Server can override with remote config
+
+7) Security & Compliance
+
+All network calls via HTTPS
+
+JWT or session token stored in SecureStore
+
+Do not log sensitive user data
+
+Include Privacy Policy + Terms links from bootstrap config
+
+Minimal permissions: only ask location if benefits “near you” is enabled; only ask notifications permission when user opts in.
+
+8) Deliverables
+
+Generate:
+
+A working Expo RN app with the full navigation + screens
+
+Reusable UI components matching the style (cards, buttons, chips, list items)
+
+A mock API layer with sample data + clear interfaces to swap to real backend
+
+Club Pack example (/clubs/rangers/club.json) and build-time selection pattern
+
+Deep link routing for notifications (e.g., open a match, a benefit, an order)
+
+A short README explaining:
+
+how to run locally
+
+how to switch clubs (build-time tenantKey)
+
+where to plug in real API endpoints
+
+9) Extra Nice-to-haves (if time)
+
+Skeleton loaders
+
+Empty states (no benefits, no upcoming matches)
+
+Error handling with retry
+
+Offline fallback for membership card + last tickets list
+
+Light “admin/staff mode” placeholder for future check-in scanning (not required now)
