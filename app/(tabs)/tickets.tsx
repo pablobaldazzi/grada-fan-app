@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,85 +6,150 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import Colors from "@/constants/colors";
-import { MOCK_MATCHES, formatDate, formatCLP, Match } from "@/lib/mock-data";
+import QRCode from "react-native-qrcode-svg";
+import { useQuery } from "@tanstack/react-query";
+import { useClub } from "@/lib/contexts/ClubContext";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { fetchOrders } from "@/lib/api";
+import { formatDate, formatTime, formatCLP } from "@/lib/format";
+import type { BackendEvent, Ticket } from "@/lib/schemas";
 
-function MatchCard({ match }: { match: Match }) {
+interface TicketWithOrderId extends Ticket {
+  _orderId: string;
+}
+
+function EventCard({ event, colors }: { event: BackendEvent; colors: Record<string, string> }) {
+  const minPrice = event.ticketTypes?.length
+    ? Math.min(...event.ticketTypes.map((tt) => tt.price))
+    : 0;
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        router.push({ pathname: "/match-tickets", params: { matchId: match.id } });
+        router.push({ pathname: "/match-tickets", params: { matchId: event.id } });
       }}
-      style={({ pressed }) => [styles.matchCard, { opacity: pressed ? 0.9 : 1 }]}
+      style={({ pressed }) => [styles.matchCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder, opacity: pressed ? 0.9 : 1 }]}
     >
-      <View style={styles.matchCardTop}>
-        <View style={styles.matchCompBadge}>
-          <Text style={styles.matchCompText}>{match.competition}</Text>
-        </View>
-        {match.isHome && (
-          <View style={styles.homeBadge}>
-            <Text style={styles.homeBadgeText}>LOCAL</Text>
-          </View>
-        )}
-      </View>
-
       <View style={styles.matchTeamsRow}>
         <View style={styles.matchTeamCol}>
-          <View style={styles.matchTeamIcon}>
-            <MaterialCommunityIcons name="shield" size={32} color={Colors.primary} />
+          <View style={[styles.matchTeamIcon, { backgroundColor: colors.primary + '20' }]}>
+            <MaterialCommunityIcons name="shield" size={32} color={colors.primary} />
           </View>
-          <Text style={styles.matchTeamName} numberOfLines={1}>{match.homeTeam}</Text>
-        </View>
-        <View style={styles.matchVsCol}>
-          <Text style={styles.matchVsText}>vs</Text>
-        </View>
-        <View style={styles.matchTeamCol}>
-          <View style={styles.matchTeamIcon}>
-            <MaterialCommunityIcons name="shield-outline" size={32} color={Colors.textSecondary} />
-          </View>
-          <Text style={styles.matchTeamName} numberOfLines={1}>{match.awayTeam}</Text>
+          <Text style={[styles.matchTeamName, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
         </View>
       </View>
-
-      <View style={styles.matchBottom}>
+      <View style={[styles.matchBottom, { borderTopColor: colors.divider }]}>
         <View style={styles.matchMetaRow}>
-          <Ionicons name="calendar-outline" size={14} color={Colors.textSecondary} />
-          <Text style={styles.matchMetaText}>{formatDate(match.date)}</Text>
+          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.matchMetaText, { color: colors.textSecondary }]}>{formatDate(event.datetime)}</Text>
         </View>
         <View style={styles.matchMetaRow}>
-          <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-          <Text style={styles.matchMetaText}>{match.time}</Text>
+          <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.matchMetaText, { color: colors.textSecondary }]}>{formatTime(event.datetime)}</Text>
         </View>
-        <View style={styles.matchMetaRow}>
-          <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
-          <Text style={styles.matchMetaText} numberOfLines={1}>{match.venue}</Text>
-        </View>
+        {event.venue ? (
+          <View style={styles.matchMetaRow}>
+            <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.matchMetaText, { color: colors.textSecondary }]} numberOfLines={1}>{event.venue}</Text>
+          </View>
+        ) : null}
       </View>
-
       <View style={styles.buyRow}>
-        <Text style={styles.fromPrice}>Desde {formatCLP(5000)}</Text>
-        <View style={styles.buyBtn}>
-          <Text style={styles.buyBtnText}>Comprar</Text>
-          <Ionicons name="arrow-forward" size={14} color={Colors.text} />
+        <Text style={[styles.fromPrice, { color: colors.textSecondary }]}>
+          {minPrice > 0 ? `Desde ${formatCLP(minPrice)}` : 'Entradas'}
+        </Text>
+        <View style={[styles.buyBtn, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.buyBtnText, { color: colors.text }]}>Comprar</Text>
+          <Ionicons name="arrow-forward" size={14} color={colors.text} />
         </View>
       </View>
     </Pressable>
   );
 }
 
+function TicketCard({ item, colors }: { item: TicketWithOrderId; colors: Record<string, string> }) {
+  const qrValue = item.token ?? item.id;
+  return (
+    <View style={[styles.ticketCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+      <Text style={[styles.ticketEventName, { color: colors.text }]} numberOfLines={2}>
+        {item.event?.name ?? 'Evento'}
+      </Text>
+      {item.event?.datetime && (
+        <Text style={[styles.ticketMeta, { color: colors.textSecondary }]}>
+          {formatDate(item.event.datetime)} · {formatTime(item.event.datetime)}
+        </Text>
+      )}
+      {item.event?.venue ? (
+        <Text style={[styles.ticketVenue, { color: colors.textSecondary }]} numberOfLines={1}>
+          {item.event.venue}
+        </Text>
+      ) : null}
+      <View style={styles.ticketBadgeRow}>
+        {item.ticketType?.name ? (
+          <View style={[styles.ticketBadge, { backgroundColor: colors.primary + '20' }]}>
+            <Text style={[styles.ticketBadgeText, { color: colors.primary }]}>{item.ticketType.name}</Text>
+          </View>
+        ) : null}
+        {item.seatLabel ? (
+          <Text style={[styles.ticketSeat, { color: colors.textSecondary }]}>Asiento: {item.seatLabel}</Text>
+        ) : null}
+        {item.sectionName ? (
+          <Text style={[styles.ticketSeat, { color: colors.textSecondary }]}>Sección: {item.sectionName}</Text>
+        ) : null}
+      </View>
+      <View style={styles.qrContainer}>
+        <QRCode
+          value={qrValue}
+          size={160}
+          color={colors.text}
+          backgroundColor={colors.surface}
+        />
+      </View>
+      {item.status ? (
+        <Text style={[styles.ticketStatus, { color: colors.textSecondary }]}>Estado: {item.status}</Text>
+      ) : null}
+    </View>
+  );
+}
+
 export default function TicketsScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
+  const { club, theme } = useClub();
+  const { token } = useAuth();
+  const colors = theme.colors;
   const [tab, setTab] = useState<'upcoming' | 'mytickets'>('upcoming');
 
+  const {
+    data: orders,
+    isLoading: ordersLoading,
+    error: ordersError,
+    refetch: refetchOrders,
+    isRefetching: ordersRefetching,
+  } = useQuery({
+    queryKey: ['orders'],
+    queryFn: fetchOrders,
+    enabled: tab === 'mytickets' && !!token,
+  });
+
+  const tickets = useMemo((): TicketWithOrderId[] => {
+    if (!orders) return [];
+    return orders.flatMap((order) =>
+      (order.tickets ?? []).map((t) => ({ ...t, _orderId: order.id }))
+    );
+  }, [orders]);
+
+  const events = club?.events ?? [];
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -92,35 +157,75 @@ export default function TicketsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          tab === 'mytickets' ? (
+            <RefreshControl
+              refreshing={ordersRefetching}
+              onRefresh={() => refetchOrders()}
+              tintColor={colors.primary}
+            />
+          ) : undefined
+        }
       >
-        <Text style={styles.title}>Entradas</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Entradas</Text>
 
-        <View style={styles.tabs}>
+        <View style={[styles.tabs, { backgroundColor: colors.surface }]}>
           <Pressable
             onPress={() => { Haptics.selectionAsync(); setTab('upcoming'); }}
-            style={[styles.tab, tab === 'upcoming' && styles.tabActive]}
+            style={[styles.tab, tab === 'upcoming' && [styles.tabActive, { backgroundColor: colors.primary }]]}
           >
-            <Text style={[styles.tabText, tab === 'upcoming' && styles.tabTextActive]}>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, tab === 'upcoming' && [styles.tabTextActive, { color: colors.text }]]}>
               Proximos
             </Text>
           </Pressable>
           <Pressable
             onPress={() => { Haptics.selectionAsync(); setTab('mytickets'); }}
-            style={[styles.tab, tab === 'mytickets' && styles.tabActive]}
+            style={[styles.tab, tab === 'mytickets' && [styles.tabActive, { backgroundColor: colors.primary }]]}
           >
-            <Text style={[styles.tabText, tab === 'mytickets' && styles.tabTextActive]}>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, tab === 'mytickets' && [styles.tabTextActive, { color: colors.text }]]}>
               Mis Entradas
             </Text>
           </Pressable>
         </View>
 
         {tab === 'upcoming' ? (
-          MOCK_MATCHES.map(match => <MatchCard key={match.id} match={match} />)
+          events.length > 0
+            ? events.map((ev) => <EventCard key={ev.id} event={ev} colors={colors} />)
+            : (
+              <View style={styles.emptyState}>
+                <Ionicons name="calendar-outline" size={48} color={colors.textTertiary} />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>Sin partidos</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  No hay partidos proximos por ahora
+                </Text>
+              </View>
+            )
+        ) : ordersLoading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Cargando entradas...</Text>
+          </View>
+        ) : ordersError ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="alert-circle-outline" size={48} color={colors.textTertiary} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No se pudieron cargar las entradas</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Tira hacia abajo para reintentar
+            </Text>
+            <Pressable
+              onPress={() => refetchOrders()}
+              style={[styles.retryBtn, { backgroundColor: colors.primary }]}
+            >
+              <Text style={[styles.retryBtnText, { color: colors.text }]}>Reintentar</Text>
+            </Pressable>
+          </View>
+        ) : tickets.length > 0 ? (
+          tickets.map((item) => <TicketCard key={item.id} item={item} colors={colors} />)
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="ticket-outline" size={48} color={Colors.textTertiary} />
-            <Text style={styles.emptyTitle}>Sin entradas</Text>
-            <Text style={styles.emptyText}>
+            <Ionicons name="ticket-outline" size={48} color={colors.textTertiary} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>Sin entradas</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Tus entradas compradas apareceran aqui
             </Text>
           </View>
@@ -131,158 +236,49 @@ export default function TicketsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   scrollContent: { paddingHorizontal: 16 },
-  title: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 28,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  tabs: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
-  },
-  tab: {
-    flex: 1,
+  title: { fontFamily: 'Inter_700Bold', fontSize: 28, marginBottom: 16 },
+  tabs: { flexDirection: 'row', borderRadius: 12, padding: 4, marginBottom: 20 },
+  tab: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
+  tabActive: {},
+  tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  tabTextActive: {},
+  matchCard: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1 },
+  matchTeamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+  matchTeamCol: { flex: 1, alignItems: 'center', gap: 6 },
+  matchTeamIcon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  matchTeamName: { fontFamily: 'Inter_600SemiBold', fontSize: 13, textAlign: 'center' },
+  matchBottom: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingTop: 14, borderTopWidth: 1, borderTopColor: 'transparent', marginBottom: 14 },
+  matchMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  matchMetaText: { fontFamily: 'Inter_400Regular', fontSize: 12 },
+  buyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  fromPrice: { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  buyBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 },
+  emptyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 18 },
+  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 14, textAlign: 'center' },
+  retryBtn: {
+    marginTop: 12,
     paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 10,
-    alignItems: 'center',
   },
-  tabActive: {
-    backgroundColor: Colors.primary,
-  },
-  tabText: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  tabTextActive: {
-    color: Colors.text,
-  },
-  matchCard: {
-    backgroundColor: Colors.surface,
+  retryBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  ticketCard: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
   },
-  matchCardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  matchCompBadge: {
-    backgroundColor: Colors.surfaceHighlight,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  matchCompText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 11,
-    color: Colors.textSecondary,
-  },
-  homeBadge: {
-    backgroundColor: Colors.primary + '20',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  homeBadgeText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 10,
-    color: Colors.primary,
-    letterSpacing: 1,
-  },
-  matchTeamsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  matchTeamCol: { flex: 1, alignItems: 'center', gap: 6 },
-  matchTeamIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: Colors.surfaceHighlight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  matchTeamName: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 13,
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  matchVsCol: { paddingHorizontal: 16 },
-  matchVsText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 16,
-    color: Colors.textTertiary,
-  },
-  matchBottom: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-    marginBottom: 14,
-  },
-  matchMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  matchMetaText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  buyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  fromPrice: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  buyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  buyBtnText: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 13,
-    color: Colors.text,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    gap: 12,
-  },
-  emptyTitle: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 18,
-    color: Colors.text,
-  },
-  emptyText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
+  ticketEventName: { fontFamily: 'Inter_600SemiBold', fontSize: 17, marginBottom: 4 },
+  ticketMeta: { fontFamily: 'Inter_400Regular', fontSize: 13, marginBottom: 2 },
+  ticketVenue: { fontFamily: 'Inter_400Regular', fontSize: 13, marginBottom: 10 },
+  ticketBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 14 },
+  ticketBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  ticketBadgeText: { fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+  ticketSeat: { fontFamily: 'Inter_400Regular', fontSize: 12 },
+  qrContainer: { alignItems: 'center', paddingVertical: 12 },
+  ticketStatus: { fontFamily: 'Inter_400Regular', fontSize: 12, textAlign: 'center', marginTop: 6 },
 });

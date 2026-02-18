@@ -11,93 +11,74 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
-import { MOCK_MEMBER } from "@/lib/mock-data";
+import { useClub } from "@/lib/contexts/ClubContext";
+import { useAuth } from "@/lib/contexts/AuthContext";
+
+function displayName(fan: { name?: string | null; firstName?: string | null; lastName?: string | null } | null): string {
+  if (!fan) return 'Socio';
+  if (fan.name) return fan.name;
+  const first = fan.firstName ?? '';
+  const last = fan.lastName ?? '';
+  return [first, last].filter(Boolean).join(' ') || 'Socio';
+}
 
 export default function MemberCardFullScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
+  const { club, theme } = useClub();
+  const { fan } = useAuth();
+  const colors = theme.colors;
+  const name = displayName(fan);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>
-        <Pressable onPress={() => router.back()} style={styles.closeBtn}>
-          <Ionicons name="close" size={24} color={Colors.text} />
+        <Pressable onPress={() => router.back()} style={[styles.closeBtn, { backgroundColor: colors.surface }]}>
+          <Ionicons name="close" size={24} color={colors.text} />
         </Pressable>
       </View>
 
       <View style={styles.cardWrapper}>
-        <LinearGradient
-          colors={['#1a1a1a', '#111111', '#0a0a0a']}
-          style={styles.card}
-        >
-          <View style={styles.cardAccent} />
+        <LinearGradient colors={['#1a1a1a', '#111111', '#0a0a0a']} style={styles.card}>
+          <View style={[styles.cardAccent, { backgroundColor: colors.primary }]} />
 
           <View style={styles.cardTop}>
             <View style={styles.logoArea}>
-              <MaterialCommunityIcons name="shield" size={36} color={Colors.primary} />
+              <MaterialCommunityIcons name="shield" size={36} color={colors.primary} />
               <View>
-                <Text style={styles.clubName}>Rangers FC</Text>
-                <Text style={styles.cardLabel}>Carnet Digital</Text>
+                <Text style={[styles.clubName, { color: colors.text }]}>{club?.name ?? 'Club'}</Text>
+                <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>Carnet Digital</Text>
               </View>
-            </View>
-            <View style={styles.tierBadge}>
-              <Ionicons name="star" size={12} color={Colors.gold} />
-              <Text style={styles.tierText}>{MOCK_MEMBER.tier}</Text>
             </View>
           </View>
 
           <View style={styles.cardCenter}>
-            <Text style={styles.roleLabel}>{MOCK_MEMBER.role}</Text>
-            <Text style={styles.memberName}>{MOCK_MEMBER.name}</Text>
-            <Text style={styles.memberNumber}>N {MOCK_MEMBER.memberNumber}</Text>
+            <Text style={[styles.roleLabel, { color: colors.textTertiary }]}>Socio</Text>
+            <Text style={[styles.memberName, { color: colors.text }]}>{name}</Text>
+            {fan?.email ? <Text style={[styles.memberNumber, { color: colors.textSecondary }]}>{fan.email}</Text> : null}
           </View>
 
           <View style={styles.detailsGrid}>
-            <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>RUT</Text>
-              <Text style={styles.detailValue}>{MOCK_MEMBER.rut}</Text>
-            </View>
-            <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>NACIMIENTO</Text>
-              <Text style={styles.detailValue}>{MOCK_MEMBER.birthDate}</Text>
-            </View>
-            <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>VENCIMIENTO</Text>
-              <Text style={styles.detailValue}>{MOCK_MEMBER.expirationDate}</Text>
-            </View>
-          </View>
-
-          <View style={styles.barcodeSection}>
-            <View style={styles.barcodeStrips}>
-              {Array.from({ length: 40 }).map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.strip,
-                    {
-                      width: Math.random() > 0.5 ? 3.5 : 2,
-                      height: 55,
-                      opacity: 0.4 + Math.random() * 0.6,
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-            <Text style={styles.barcodeId}>{MOCK_MEMBER.memberNumber}</Text>
+            {fan?.phone ? (
+              <View style={styles.detailCol}>
+                <Text style={[styles.detailLabel, { color: colors.textTertiary }]}>TELEFONO</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>{fan.phone}</Text>
+              </View>
+            ) : null}
           </View>
         </LinearGradient>
       </View>
 
-      <View style={styles.presentNotice}>
-        <Ionicons name="shield-checkmark" size={20} color={Colors.primary} />
-        <Text style={styles.presentText}>
+      <View style={[styles.presentNotice, { backgroundColor: colors.primary + '15' }]}>
+        <Ionicons name="shield-checkmark" size={20} color={colors.primary} />
+        <Text style={[styles.presentText, { color: colors.textSecondary }]}>
           Presenta este carnet para acceder a beneficios exclusivos
         </Text>
       </View>
 
       <View style={[styles.brightnessNote, { paddingBottom: insets.bottom + (Platform.OS === "web" ? 34 : 16) }]}>
-        <Ionicons name="sunny" size={16} color={Colors.textTertiary} />
-        <Text style={styles.brightnessText}>Brillo al maximo para mejor lectura</Text>
+        <Ionicons name="sunny" size={16} color={colors.textTertiary} />
+        <Text style={[styles.brightnessText, { color: colors.textTertiary }]}>Brillo al maximo para mejor lectura</Text>
       </View>
     </View>
   );

@@ -12,7 +12,8 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
-import { MOCK_MATCHES, MOCK_TICKET_TYPES, formatCLP, formatDate } from "@/lib/mock-data";
+import { useClub } from "@/lib/contexts/ClubContext";
+import { formatCLP, formatDate, formatTime } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
 
 const SEATS_PER_ROW = 12;
@@ -28,9 +29,9 @@ function generateSeats(): SeatState[][] {
   );
 }
 
-function SeatDot({ state, onPress }: { state: SeatState; onPress: () => void }) {
-  const color = state === 'selected' ? Colors.primary :
-    state === 'taken' ? Colors.surfaceHighlight : Colors.textTertiary;
+function SeatDot({ state, onPress, colors }: { state: SeatState; onPress: () => void; colors: Record<string, string> }) {
+  const color = state === 'selected' ? colors.primary :
+    state === 'taken' ? colors.surfaceHighlight : colors.textTertiary;
 
   return (
     <Pressable
@@ -44,7 +45,9 @@ export default function MatchTicketsScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const match = MOCK_MATCHES.find(m => m.id === matchId) || MOCK_MATCHES[0];
+  const { club, theme } = useClub();
+  const colors = theme.colors;
+  const event = club?.events?.find((e) => e.id === matchId) ?? null;
   const { addItem } = useCart();
 
   const [step, setStep] = useState<'type' | 'seats' | 'confirm'>('type');
@@ -52,7 +55,8 @@ export default function MatchTicketsScreen() {
   const [seats, setSeats] = useState(() => generateSeats());
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
-  const ticketType = MOCK_TICKET_TYPES.find(t => t.id === selectedType);
+  const ticketTypes = event?.ticketTypes ?? [];
+  const ticketType = ticketTypes.find((t) => t.id === selectedType);
 
   const toggleSeat = (row: number, col: number) => {
     const key = `${row}-${col}`;
@@ -73,29 +77,39 @@ export default function MatchTicketsScreen() {
   };
 
   const handleAddToCart = () => {
-    if (!ticketType) return;
-    selectedSeats.forEach((seatKey, i) => {
-      const [row, col] = seatKey.split('-').map(Number);
-      addItem({
-        id: `ticket-${match.id}-${seatKey}-${Date.now()}`,
-        type: 'ticket',
-        name: `${ticketType.name} - ${match.homeTeam} vs ${match.awayTeam}`,
-        price: ticketType.price,
-        quantity: 1,
-        details: `Fila ${row + 1}, Asiento ${col + 1} - ${formatDate(match.date)}`,
-      });
+    if (!ticketType || !event) return;
+    const qty = Math.max(1, selectedSeats.length);
+    addItem({
+      id: `ticket-${event.id}-${ticketType.id}-${Date.now()}`,
+      type: 'ticket',
+      name: `${ticketType.name} - ${event.name}`,
+      price: ticketType.price,
+      quantity: qty,
+      details: event.venue ? `${formatDate(event.datetime)} - ${event.venue}` : formatDate(event.datetime),
+      refId: ticketType.id,
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.push("/cart");
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="close" size={24} color={Colors.text} />
+  if (!event) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.text, padding: 24 }}>Evento no encontrado</Text>
+        <Pressable onPress={() => router.back()}>
+          <Text style={{ color: colors.primary }}>Volver</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>
+        <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface }]}>
+          <Ionicons name="close" size={24} color={colors.text} />
+        </Pressable>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
           {step === 'type' ? 'Seleccionar Zona' : step === 'seats' ? 'Elegir Asientos' : 'Confirmar'}
         </Text>
         <View style={{ width: 40 }} />
@@ -105,23 +119,21 @@ export default function MatchTicketsScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.matchSummary}>
+        <View style={[styles.matchSummary, { backgroundColor: colors.surface }]}>
           <View style={styles.matchSummaryTeams}>
-            <MaterialCommunityIcons name="shield" size={24} color={Colors.primary} />
-            <Text style={styles.matchSummaryText}>
-              {match.homeTeam} vs {match.awayTeam}
-            </Text>
-            <MaterialCommunityIcons name="shield-outline" size={24} color={Colors.textSecondary} />
+            <MaterialCommunityIcons name="shield" size={24} color={colors.primary} />
+            <Text style={[styles.matchSummaryText, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
+            <MaterialCommunityIcons name="shield-outline" size={24} color={colors.textSecondary} />
           </View>
-          <Text style={styles.matchSummaryMeta}>
-            {formatDate(match.date)} - {match.time} - {match.venue}
+          <Text style={[styles.matchSummaryMeta, { color: colors.textSecondary }]}>
+            {formatDate(event.datetime)} - {formatTime(event.datetime)} - {event.venue ?? ''}
           </Text>
         </View>
 
         {step === 'type' && (
           <>
-            <Text style={styles.sectionTitle}>Zonas disponibles</Text>
-            {MOCK_TICKET_TYPES.map(tt => (
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Zonas disponibles</Text>
+            {ticketTypes.map((tt) => (
               <Pressable
                 key={tt.id}
                 onPress={() => {
@@ -130,20 +142,22 @@ export default function MatchTicketsScreen() {
                 }}
                 style={[
                   styles.typeCard,
-                  selectedType === tt.id && styles.typeCardSelected,
+                  { backgroundColor: colors.surface },
+                  selectedType === tt.id && [styles.typeCardSelected, { borderColor: colors.primary }],
                 ]}
               >
                 <View style={styles.typeInfo}>
-                  <Text style={styles.typeName}>{tt.name}</Text>
-                  <Text style={styles.typeAvail}>{tt.available} disponibles</Text>
+                  <Text style={[styles.typeName, { color: colors.text }]}>{tt.name}</Text>
+                  <Text style={[styles.typeAvail, { color: colors.textSecondary }]}>{(tt.capacity ?? 0) - (tt.sold ?? 0)} disponibles</Text>
                 </View>
                 <View style={styles.typeRight}>
-                  <Text style={styles.typePrice}>{formatCLP(tt.price)}</Text>
+                  <Text style={[styles.typePrice, { color: colors.primary }]}>{formatCLP(tt.price)}</Text>
                   <View style={[
                     styles.typeRadio,
-                    selectedType === tt.id && styles.typeRadioSelected,
+                    { borderColor: colors.divider },
+                    selectedType === tt.id && [styles.typeRadioSelected, { borderColor: colors.primary }],
                   ]}>
-                    {selectedType === tt.id && <View style={styles.typeRadioDot} />}
+                    {selectedType === tt.id && <View style={[styles.typeRadioDot, { backgroundColor: colors.primary }]} />}
                   </View>
                 </View>
               </Pressable>
@@ -151,10 +165,10 @@ export default function MatchTicketsScreen() {
             {selectedType && (
               <Pressable
                 onPress={() => setStep('seats')}
-                style={styles.continueBtn}
+                style={[styles.continueBtn, { backgroundColor: colors.primary }]}
               >
-                <Text style={styles.continueBtnText}>Seleccionar Asientos</Text>
-                <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+                <Text style={[styles.continueBtnText, { color: colors.text }]}>Seleccionar Asientos</Text>
+                <Ionicons name="arrow-forward" size={18} color={colors.text} />
               </Pressable>
             )}
           </>
@@ -162,26 +176,26 @@ export default function MatchTicketsScreen() {
 
         {step === 'seats' && (
           <>
-            <Text style={styles.sectionTitle}>{ticketType?.name}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{ticketType?.name}</Text>
 
             <View style={styles.seatLegend}>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: Colors.textTertiary }]} />
-                <Text style={styles.legendText}>Disponible</Text>
+                <View style={[styles.legendDot, { backgroundColor: colors.textTertiary }]} />
+                <Text style={[styles.legendText, { color: colors.text }]}>Disponible</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
-                <Text style={styles.legendText}>Seleccionado</Text>
+                <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
+                <Text style={[styles.legendText, { color: colors.text }]}>Seleccionado</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: Colors.surfaceHighlight }]} />
-                <Text style={styles.legendText}>Ocupado</Text>
+                <View style={[styles.legendDot, { backgroundColor: colors.surfaceHighlight }]} />
+                <Text style={[styles.legendText, { color: colors.text }]}>Ocupado</Text>
               </View>
             </View>
 
             <View style={styles.fieldLabel}>
-              <MaterialCommunityIcons name="soccer-field" size={20} color={Colors.textTertiary} />
-              <Text style={styles.fieldText}>CANCHA</Text>
+              <MaterialCommunityIcons name="soccer-field" size={20} color={colors.textTertiary} />
+              <Text style={[styles.fieldText, { color: colors.textTertiary }]}>CANCHA</Text>
             </View>
 
             <View style={styles.seatMap}>
@@ -193,6 +207,7 @@ export default function MatchTicketsScreen() {
                       key={colIdx}
                       state={state}
                       onPress={() => toggleSeat(rowIdx, colIdx)}
+                      colors={colors}
                     />
                   ))}
                   <Text style={styles.rowLabel}>{rowIdx + 1}</Text>
@@ -211,7 +226,7 @@ export default function MatchTicketsScreen() {
               {selectedSeats.length > 0 && (
                 <Pressable onPress={() => setStep('confirm')} style={styles.continueBtn}>
                   <Text style={styles.continueBtnText}>Continuar</Text>
-                  <Ionicons name="arrow-forward" size={18} color={Colors.text} />
+                  <Ionicons name="arrow-forward" size={18} color={colors.text} />
                 </Pressable>
               )}
             </View>
@@ -240,7 +255,7 @@ export default function MatchTicketsScreen() {
             </View>
             <View style={styles.confirmCard}>
               <Text style={styles.confirmLabel}>Total</Text>
-              <Text style={[styles.confirmValue, { color: Colors.primary }]}>
+              <Text style={[styles.confirmValue, { color: colors.primary }]}>
                 {formatCLP(ticketType.price * selectedSeats.length)}
               </Text>
             </View>
@@ -250,7 +265,7 @@ export default function MatchTicketsScreen() {
                 <Text style={styles.backStepBtnText}>Volver</Text>
               </Pressable>
               <Pressable onPress={handleAddToCart} style={styles.continueBtn}>
-                <Ionicons name="bag-add" size={18} color={Colors.text} />
+                <Ionicons name="bag-add" size={18} color={colors.text} />
                 <Text style={styles.continueBtnText}>Agregar al carrito</Text>
               </Pressable>
             </View>

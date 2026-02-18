@@ -12,10 +12,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { useClub } from "@/lib/contexts/ClubContext";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import Colors from "@/constants/colors";
-import { MOCK_MEMBER } from "@/lib/mock-data";
 
-function MemberCard() {
+function displayName(fan: { name?: string | null; firstName?: string | null; lastName?: string | null } | null): string {
+  if (!fan) return 'Socio';
+  if (fan.name) return fan.name;
+  const first = fan.firstName ?? '';
+  const last = fan.lastName ?? '';
+  return [first, last].filter(Boolean).join(' ') || 'Socio';
+}
+
+function MemberCard({ colors }: { colors: Record<string, string> }) {
+  const { fan } = useAuth();
+  const name = displayName(fan);
+
   return (
     <Pressable
       onPress={() => {
@@ -24,73 +36,32 @@ function MemberCard() {
       }}
       style={({ pressed }) => [{ opacity: pressed ? 0.96 : 1 }]}
     >
-      <LinearGradient
-        colors={['#1a1a1a', '#111111', '#0a0a0a']}
-        style={styles.card}
-      >
+      <LinearGradient colors={['#1a1a1a', '#111111', '#0a0a0a']} style={styles.card}>
         <View style={styles.cardHeader}>
-          <View style={styles.cardLogo}>
-            <MaterialCommunityIcons name="shield" size={28} color={Colors.primary} />
-          </View>
-          <View style={styles.cardHeaderRight}>
-            <View style={styles.tierBadge}>
-              <Ionicons name="star" size={10} color={Colors.gold} />
-              <Text style={styles.tierText}>{MOCK_MEMBER.tier}</Text>
-            </View>
+          <View style={[styles.cardLogo, { backgroundColor: colors.primary + '15' }]}>
+            <MaterialCommunityIcons name="shield" size={28} color={colors.primary} />
           </View>
         </View>
-
         <View style={styles.cardBody}>
-          <Text style={styles.roleLabel}>{MOCK_MEMBER.role}</Text>
-          <Text style={styles.memberName}>{MOCK_MEMBER.name}</Text>
-          <Text style={styles.memberNumber}>N {MOCK_MEMBER.memberNumber}</Text>
+          <Text style={[styles.roleLabel, { color: colors.textTertiary }]}>Socio</Text>
+          <Text style={[styles.memberName, { color: colors.text }]}>{name}</Text>
+          {fan?.email ? <Text style={[styles.memberNumber, { color: colors.textSecondary }]}>{fan.email}</Text> : null}
         </View>
-
-        <View style={styles.cardDetails}>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>RUT</Text>
-            <Text style={styles.detailValue}>{MOCK_MEMBER.rut}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Nacimiento</Text>
-            <Text style={styles.detailValue}>{MOCK_MEMBER.birthDate}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Vencimiento</Text>
-            <Text style={styles.detailValue}>{MOCK_MEMBER.expirationDate}</Text>
-          </View>
-        </View>
-
-        <View style={styles.cardBarcode}>
-          <View style={styles.barcodeArea}>
-            {Array.from({ length: 30 }).map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.barcodeLine,
-                  { width: Math.random() > 0.5 ? 3 : 1.5, opacity: 0.4 + Math.random() * 0.6 },
-                ]}
-              />
-            ))}
-          </View>
-          <Text style={styles.barcodeNumber}>{MOCK_MEMBER.memberNumber}</Text>
-        </View>
-
         <View style={styles.cardAccentLine} />
       </LinearGradient>
     </Pressable>
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoRow({ icon, label, value, colors }: { icon: any; label: string; value: string; colors: Record<string, string> }) {
   return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <Ionicons name={icon} size={18} color={Colors.primary} />
+    <View style={[styles.infoRow, { backgroundColor: colors.surface }]}>
+      <View style={[styles.infoIcon, { backgroundColor: colors.primary + '15' }]}>
+        <Ionicons name={icon} size={18} color={colors.primary} />
       </View>
       <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={[styles.infoLabel, { color: colors.textTertiary }]}>{label}</Text>
+        <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
       </View>
     </View>
   );
@@ -99,9 +70,13 @@ function InfoRow({ icon, label, value }: { icon: any; label: string; value: stri
 export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
+  const { club, theme } = useClub();
+  const { fan } = useAuth();
+  const colors = theme.colors;
+  const name = displayName(fan);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -110,14 +85,14 @@ export default function MembershipScreen() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <Text style={styles.title}>Rangers ID</Text>
-        <Text style={styles.subtitle}>Tu carnet digital de socio</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{club?.name ?? 'Club'} ID</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Tu carnet digital de socio</Text>
 
-        <MemberCard />
+        <MemberCard colors={colors} />
 
-        <View style={styles.presentNotice}>
-          <Ionicons name="information-circle" size={18} color={Colors.primary} />
-          <Text style={styles.presentText}>
+        <View style={[styles.presentNotice, { backgroundColor: colors.primary + '10' }]}>
+          <Ionicons name="information-circle" size={18} color={colors.primary} />
+          <Text style={[styles.presentText, { color: colors.textSecondary }]}>
             Presenta este carnet para acceder a beneficios exclusivos y descuentos
           </Text>
         </View>
@@ -127,19 +102,17 @@ export default function MembershipScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push("/member-card-full");
           }}
-          style={({ pressed }) => [styles.fullscreenBtn, { opacity: pressed ? 0.85 : 1 }]}
+          style={({ pressed }) => [styles.fullscreenBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.85 : 1 }]}
         >
-          <Ionicons name="expand" size={18} color={Colors.text} />
-          <Text style={styles.fullscreenBtnText}>Ver pantalla completa</Text>
+          <Ionicons name="expand" size={18} color={colors.text} />
+          <Text style={[styles.fullscreenBtnText, { color: colors.text }]}>Ver pantalla completa</Text>
         </Pressable>
 
         <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Informacion del socio</Text>
-          <InfoRow icon="person" label="Nombre" value={MOCK_MEMBER.name} />
-          <InfoRow icon="document-text" label="RUT" value={MOCK_MEMBER.rut} />
-          <InfoRow icon="calendar" label="Fecha de nacimiento" value={MOCK_MEMBER.birthDate} />
-          <InfoRow icon="ribbon" label="Tipo" value={`${MOCK_MEMBER.role} ${MOCK_MEMBER.tier}`} />
-          <InfoRow icon="time" label="Vencimiento" value={MOCK_MEMBER.expirationDate} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Informacion del socio</Text>
+          <InfoRow icon="person" label="Nombre" value={name} colors={colors} />
+          {fan?.email ? <InfoRow icon="mail" label="Email" value={fan.email} colors={colors} /> : null}
+          {fan?.phone ? <InfoRow icon="call" label="Telefono" value={fan.phone} colors={colors} /> : null}
         </View>
       </ScrollView>
     </View>

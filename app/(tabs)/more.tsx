@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,24 +6,28 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Colors from "@/constants/colors";
 import {
   MOCK_BENEFITS,
   MOCK_EXPERIENCES,
-  MOCK_NOTIFICATIONS,
   BENEFIT_CATEGORIES,
   Benefit,
   Experience,
-  Notification as AppNotification,
   formatCLP,
   formatDate,
   timeAgo,
 } from "@/lib/mock-data";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { getUseMockData, setUseMockData } from "@/lib/demo-mode";
+import { fetchNotifications, markNotificationRead } from "@/lib/api";
+import type { AppNotification } from "@/lib/schemas";
 
 type MoreTab = 'benefits' | 'experiences' | 'notifications';
 
@@ -102,7 +106,14 @@ function ExperienceCard({ experience }: { experience: Experience }) {
   );
 }
 
-function NotificationItem({ notification }: { notification: AppNotification }) {
+function NotificationItem({
+  notification,
+  onPress,
+}: {
+  notification: AppNotification;
+  onPress: () => void;
+}) {
+  const read = !!notification.readAt;
   const typeColors: Record<string, string> = {
     ticket: Colors.primary,
     promo: Colors.warning,
@@ -115,22 +126,29 @@ function NotificationItem({ notification }: { notification: AppNotification }) {
     offer: 'Oferta',
     club: 'Club',
   };
-  const color = typeColors[notification.type] || Colors.info;
+  const color = typeColors[notification.type ?? ''] || Colors.info;
+  const timeStr = notification.createdAt ? timeAgo(notification.createdAt) : '';
 
   return (
-    <View style={[styles.notifCard, !notification.read && styles.notifUnread]}>
-      <View style={[styles.notifDot, { backgroundColor: notification.read ? 'transparent' : color }]} />
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      style={({ pressed }) => [styles.notifCard, !read && styles.notifUnread, { opacity: pressed ? 0.9 : 1 }]}
+    >
+      <View style={[styles.notifDot, { backgroundColor: read ? 'transparent' : color }]} />
       <View style={styles.notifContent}>
         <View style={styles.notifHeader}>
           <View style={[styles.notifTypeBadge, { backgroundColor: color + '20' }]}>
-            <Text style={[styles.notifTypeText, { color }]}>{typeLabels[notification.type]}</Text>
+            <Text style={[styles.notifTypeText, { color }]}>{typeLabels[notification.type ?? ''] ?? 'Club'}</Text>
           </View>
-          <Text style={styles.notifTime}>{timeAgo(notification.timestamp)}</Text>
+          <Text style={styles.notifTime}>{timeStr}</Text>
         </View>
         <Text style={styles.notifTitle}>{notification.title}</Text>
-        <Text style={styles.notifBody} numberOfLines={2}>{notification.body}</Text>
+        <Text style={styles.notifBody} numberOfLines={2}>{notification.body ?? ''}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -169,8 +187,43 @@ function BenefitsSection() {
 export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const [activeTab, setActiveTab] = useState<MoreTab>('benefits');
-  const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<MoreTab>(() =>
+    params.tab === 'notifications' ? 'notifications' : 'benefits'
+  );
+  const [useDemoMode, setUseDemoMode] = useState(getUseMockData);
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (params.tab === 'notifications') {
+      setActiveTab('notifications');
+    }
+  }, [params.tab]);
+
+  const handleDemoModeToggle = async (value: boolean) => {
+    await setUseMockData(value);
+    setUseDemoMode(value);
+    queryClient.invalidateQueries();
+  };
+  const { data: notifData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => fetchNotifications({ take: 50 }),
+    enabled: !!token && activeTab === 'notifications',
+  });
+  const notifications = notifData?.items ?? [];
+  const unreadCount = notifData?.unreadCount ?? 0;
+  const markReadMutation = useMutation({
+    mutationFn: markNotificationRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+  const handleNotificationPress = (id: string) => {
+    if (!notifData?.items.find((n) => n.id === id)?.readAt) {
+      markReadMutation.mutate(id);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -183,6 +236,16 @@ export default function MoreScreen() {
         contentInsetAdjustmentBehavior="automatic"
       >
         <Text style={styles.title}>Mas</Text>
+
+        <View style={[styles.demoRow, { backgroundColor: Colors.surface, borderColor: Colors.cardBorder }]}>
+          <Text style={[styles.demoLabel, { color: Colors.text }]}>Modo demo</Text>
+          <Switch
+            value={useDemoMode}
+            onValueChange={handleDemoModeToggle}
+            trackColor={{ false: Colors.surfaceHighlight, true: Colors.primary + '80' }}
+            thumbColor={useDemoMode ? Colors.primary : Colors.textTertiary}
+          />
+        </View>
 
         <View style={styles.tabBar}>
           {(['benefits', 'experiences', 'notifications'] as MoreTab[]).map(tab => {
@@ -227,7 +290,28 @@ export default function MoreScreen() {
         )}
 
         {activeTab === 'notifications' && (
-          MOCK_NOTIFICATIONS.map(notif => <NotificationItem key={notif.id} notification={notif} />)
+          <>
+            {token && (
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/notification-preferences');
+                }}
+                style={({ pressed }) => [styles.prefsRow, { opacity: pressed ? 0.9 : 1 }]}
+              >
+                <Ionicons name="settings-outline" size={20} color={Colors.textSecondary} />
+                <Text style={styles.prefsRowText}>Preferencias de notificaciones</Text>
+                <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+              </Pressable>
+            )}
+            {notifications.map(notif => (
+              <NotificationItem
+                key={notif.id}
+                notification={notif}
+                onPress={() => handleNotificationPress(notif.id)}
+              />
+            ))}
+          </>
         )}
       </ScrollView>
     </View>
@@ -242,6 +326,20 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: Colors.text,
     marginBottom: 16,
+  },
+  demoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  demoLabel: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 15,
   },
   tabBar: {
     flexDirection: 'row',
@@ -423,6 +521,23 @@ const styles = StyleSheet.create({
   },
   expSpotsLow: {
     color: Colors.warning,
+  },
+  prefsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  prefsRowText: {
+    flex: 1,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    color: Colors.text,
   },
   notifCard: {
     flexDirection: 'row',

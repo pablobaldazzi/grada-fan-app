@@ -12,25 +12,28 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import Colors from "@/constants/colors";
-import { MOCK_MATCHES, MOCK_NOTIFICATIONS, formatDate } from "@/lib/mock-data";
+import { useQuery } from "@tanstack/react-query";
+import { useClub } from "@/lib/contexts/ClubContext";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { fetchNotifications } from "@/lib/api";
+import { formatDate, formatTime } from "@/lib/format";
+import type { BackendEvent } from "@/lib/schemas";
 
-function NextMatchCard() {
-  const match = MOCK_MATCHES[0];
-  const matchDate = new Date(match.date);
+function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<string, string> }) {
+  const eventDate = new Date(event.datetime);
   const now = new Date();
-  const diffDays = Math.ceil((matchDate.getTime() - now.getTime()) / 86400000);
+  const diffDays = Math.ceil((eventDate.getTime() - now.getTime()) / 86400000);
 
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        router.push({ pathname: "/match-tickets", params: { matchId: match.id } });
+        router.push({ pathname: "/match-tickets", params: { matchId: event.id } });
       }}
       style={({ pressed }) => [styles.matchCard, { opacity: pressed ? 0.95 : 1 }]}
     >
       <LinearGradient
-        colors={[Colors.primary, Colors.primaryDark, '#1a0505']}
+        colors={[colors.primary, colors.primaryDark, '#1a0505']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.matchGradient}
@@ -39,38 +42,33 @@ function NextMatchCard() {
         <View style={styles.matchTeams}>
           <View style={styles.teamCol}>
             <View style={styles.teamBadge}>
-              <MaterialCommunityIcons name="shield" size={40} color={Colors.text} />
+              <MaterialCommunityIcons name="shield" size={40} color={colors.text} />
             </View>
-            <Text style={styles.teamName}>{match.homeTeam}</Text>
+            <Text style={[styles.teamName, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
           </View>
           <View style={styles.vsCol}>
-            <Text style={styles.vsText}>VS</Text>
-            <Text style={styles.matchTime}>{match.time} hrs</Text>
-          </View>
-          <View style={styles.teamCol}>
-            <View style={styles.teamBadge}>
-              <MaterialCommunityIcons name="shield-outline" size={40} color={Colors.textSecondary} />
-            </View>
-            <Text style={styles.teamName}>{match.awayTeam}</Text>
+            <Text style={styles.matchTime}>{formatTime(event.datetime)}</Text>
           </View>
         </View>
         <View style={styles.matchMeta}>
           <View style={styles.matchMetaItem}>
             <Ionicons name="calendar" size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.matchMetaText}>{formatDate(match.date)}</Text>
+            <Text style={styles.matchMetaText}>{formatDate(event.datetime)}</Text>
           </View>
-          <View style={styles.matchMetaItem}>
-            <Ionicons name="location" size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.matchMetaText}>{match.venue}</Text>
-          </View>
+          {event.venue ? (
+            <View style={styles.matchMetaItem}>
+              <Ionicons name="location" size={14} color="rgba(255,255,255,0.7)" />
+              <Text style={styles.matchMetaText}>{event.venue}</Text>
+            </View>
+          ) : null}
         </View>
         <View style={styles.matchCta}>
-          <Text style={styles.matchCtaText}>Comprar Entradas</Text>
-          <Ionicons name="arrow-forward" size={16} color={Colors.text} />
+          <Text style={[styles.matchCtaText, { color: colors.text }]}>Comprar Entradas</Text>
+          <Ionicons name="arrow-forward" size={16} color={colors.text} />
         </View>
         {diffDays > 0 && (
           <View style={styles.countdownBadge}>
-            <Text style={styles.countdownText}>{diffDays} dias</Text>
+            <Text style={[styles.countdownText, { color: colors.text }]}>{diffDays} dias</Text>
           </View>
         )}
       </LinearGradient>
@@ -78,42 +76,42 @@ function NextMatchCard() {
   );
 }
 
-function AnnouncementCard({ title, body, type }: { title: string; body: string; type: string }) {
-  const iconMap: Record<string, { name: any; color: string }> = {
-    ticket: { name: 'ticket', color: Colors.primary },
-    promo: { name: 'megaphone', color: Colors.warning },
-    offer: { name: 'pricetag', color: Colors.success },
-    club: { name: 'football', color: Colors.info },
+function AnnouncementCard({ title, body, type, colors }: { title: string; body: string; type: string; colors: Record<string, string> }) {
+  const iconMap: Record<string, { name: 'ticket' | 'megaphone' | 'pricetag' | 'football'; color: string }> = {
+    ticket: { name: 'ticket', color: colors.primary },
+    promo: { name: 'megaphone', color: colors.warning },
+    offer: { name: 'pricetag', color: colors.success },
+    club: { name: 'football', color: colors.info },
   };
   const icon = iconMap[type] || iconMap.club;
 
   return (
-    <View style={styles.announcementCard}>
+    <View style={[styles.announcementCard, { backgroundColor: colors.surface }]}>
       <View style={[styles.announcementIcon, { backgroundColor: icon.color + '20' }]}>
         <Ionicons name={icon.name} size={20} color={icon.color} />
       </View>
       <View style={styles.announcementContent}>
-        <Text style={styles.announcementTitle} numberOfLines={1}>{title}</Text>
-        <Text style={styles.announcementBody} numberOfLines={2}>{body}</Text>
+        <Text style={[styles.announcementTitle, { color: colors.text }]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.announcementBody, { color: colors.textSecondary }]} numberOfLines={2}>{body ?? ''}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
     </View>
   );
 }
 
-function QuickAction({ icon, label, onPress }: { icon: any; label: string; onPress: () => void }) {
+function QuickAction({ icon, label, onPress, colors }: { icon: any; label: string; onPress: () => void; colors: Record<string, string> }) {
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [styles.quickAction, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
     >
-      <View style={styles.quickActionIcon}>
-        <Ionicons name={icon} size={22} color={Colors.primary} />
+      <View style={[styles.quickActionIcon, { backgroundColor: colors.primary + '15' }]}>
+        <Ionicons name={icon} size={22} color={colors.primary} />
       </View>
-      <Text style={styles.quickActionLabel}>{label}</Text>
+      <Text style={[styles.quickActionLabel, { color: colors.textSecondary }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -121,11 +119,24 @@ function QuickAction({ icon, label, onPress }: { icon: any; label: string; onPre
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
-  const recentNotifs = MOCK_NOTIFICATIONS.slice(0, 3);
+  const { club, theme } = useClub();
+  const { token } = useAuth();
+  const colors = theme.colors;
+
+  const { data: notifData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => fetchNotifications({ take: 10 }),
+    enabled: !!token,
+  });
+  const notifications = notifData?.items ?? [];
+  const unreadCount = notifData?.unreadCount ?? 0;
+  const recentNotifs = notifications.slice(0, 3);
+
+  const firstEvent = club?.events?.[0];
+  const moreEvents = club?.events?.slice(1, 4) ?? [];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -136,68 +147,63 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.clubName}>Rojinegro App</Text>
-            <Text style={styles.greeting}>Bienvenido, Socio</Text>
+            <Text style={[styles.clubName, { color: colors.text }]}>{club?.name ?? 'Club'}</Text>
+            <Text style={[styles.greeting, { color: colors.textSecondary }]}>Bienvenido, Socio</Text>
           </View>
           <View style={styles.headerActions}>
             <Pressable
               onPress={() => router.push("/cart")}
-              style={({ pressed }) => [styles.headerBtn, { opacity: pressed ? 0.7 : 1 }]}
+              style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons name="bag-outline" size={22} color={Colors.text} />
+              <Ionicons name="bag-outline" size={22} color={colors.text} />
             </Pressable>
             <Pressable
-              onPress={() => {
-                const moreTab = 4;
-              }}
-              style={({ pressed }) => [styles.headerBtn, { opacity: pressed ? 0.7 : 1 }]}
+              onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "notifications" } })}
+              style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons name="notifications-outline" size={22} color={Colors.text} />
+              <Ionicons name="notifications-outline" size={22} color={colors.text} />
               {unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadCount}</Text>
+                <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+                  <Text style={[styles.badgeText, { color: colors.text }]}>{unreadCount}</Text>
                 </View>
               )}
             </Pressable>
           </View>
         </View>
 
-        <NextMatchCard />
+        {firstEvent ? <NextMatchCard event={firstEvent} colors={colors} /> : null}
 
         <View style={styles.quickActions}>
-          <QuickAction icon="card" label="Mi Carnet" onPress={() => router.push("/(tabs)/membership")} />
-          <QuickAction icon="ticket" label="Entradas" onPress={() => router.push("/(tabs)/tickets")} />
-          <QuickAction icon="bag" label="Tienda" onPress={() => router.push("/(tabs)/store")} />
-          <QuickAction icon="star" label="Beneficios" onPress={() => router.push("/(tabs)/more")} />
+          <QuickAction icon="card" label="Mi Carnet" onPress={() => router.push("/(tabs)/membership")} colors={colors} />
+          <QuickAction icon="ticket" label="Entradas" onPress={() => router.push("/(tabs)/tickets")} colors={colors} />
+          <QuickAction icon="bag" label="Tienda" onPress={() => router.push("/(tabs)/store")} colors={colors} />
+          <QuickAction icon="star" label="Beneficios" onPress={() => router.push("/(tabs)/more")} colors={colors} />
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Proximos Partidos</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Proximos Partidos</Text>
             <Pressable onPress={() => router.push("/(tabs)/tickets")}>
-              <Text style={styles.seeAll}>Ver todos</Text>
+              <Text style={[styles.seeAll, { color: colors.primary }]}>Ver todos</Text>
             </Pressable>
           </View>
-          {MOCK_MATCHES.slice(1, 4).map(match => (
+          {moreEvents.map((ev) => (
             <Pressable
-              key={match.id}
-              onPress={() => router.push({ pathname: "/match-tickets", params: { matchId: match.id } })}
-              style={({ pressed }) => [styles.miniMatchCard, { opacity: pressed ? 0.85 : 1 }]}
+              key={ev.id}
+              onPress={() => router.push({ pathname: "/match-tickets", params: { matchId: ev.id } })}
+              style={({ pressed }) => [styles.miniMatchCard, { backgroundColor: colors.surface, opacity: pressed ? 0.85 : 1 }]}
             >
-              <View style={styles.miniMatchDate}>
-                <Text style={styles.miniMatchDay}>{new Date(match.date).getDate()}</Text>
-                <Text style={styles.miniMatchMonth}>
-                  {['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][new Date(match.date).getMonth()]}
+              <View style={[styles.miniMatchDate, { backgroundColor: colors.primary + '15' }]}>
+                <Text style={[styles.miniMatchDay, { color: colors.primary }]}>{new Date(ev.datetime).getDate()}</Text>
+                <Text style={[styles.miniMatchMonth, { color: colors.primary }]}>
+                  {['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][new Date(ev.datetime).getMonth()]}
                 </Text>
               </View>
               <View style={styles.miniMatchInfo}>
-                <Text style={styles.miniMatchTeams}>
-                  {match.homeTeam} vs {match.awayTeam}
+                <Text style={[styles.miniMatchTeams, { color: colors.text }]} numberOfLines={1}>{ev.name}</Text>
+                <Text style={[styles.miniMatchVenue, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {ev.venue ?? ''} - {formatTime(ev.datetime)}
                 </Text>
-                <Text style={styles.miniMatchVenue}>{match.venue} - {match.time}</Text>
-              </View>
-              <View style={[styles.compBadge, !match.isHome && styles.compBadgeAway]}>
-                <Text style={styles.compBadgeText}>{match.isHome ? 'LOCAL' : 'VISITA'}</Text>
               </View>
             </Pressable>
           ))}
@@ -205,10 +211,10 @@ export default function HomeScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Novedades</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Novedades</Text>
           </View>
-          {recentNotifs.map(n => (
-            <AnnouncementCard key={n.id} title={n.title} body={n.body} type={n.type} />
+          {recentNotifs.map((n) => (
+            <AnnouncementCard key={n.id} title={n.title} body={n.body ?? ''} type={n.type ?? 'club'} colors={colors} />
           ))}
         </View>
       </ScrollView>
@@ -217,7 +223,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   scrollContent: { paddingHorizontal: 16 },
   header: {
     flexDirection: 'row',
@@ -228,12 +234,10 @@ const styles = StyleSheet.create({
   clubName: {
     fontFamily: 'Inter_700Bold',
     fontSize: 24,
-    color: Colors.text,
   },
   greeting: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   headerActions: { flexDirection: 'row', gap: 8 },
@@ -290,7 +294,6 @@ const styles = StyleSheet.create({
   teamName: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 13,
-    color: Colors.text,
     textAlign: 'center',
   },
   vsCol: { alignItems: 'center', paddingHorizontal: 12 },
@@ -328,7 +331,6 @@ const styles = StyleSheet.create({
   matchCtaText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: Colors.text,
   },
   countdownBadge: {
     position: 'absolute',
@@ -342,7 +344,6 @@ const styles = StyleSheet.create({
   countdownText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 11,
-    color: Colors.text,
   },
   quickActions: {
     flexDirection: 'row',
@@ -368,7 +369,6 @@ const styles = StyleSheet.create({
   quickActionLabel: {
     fontFamily: 'Inter_500Medium',
     fontSize: 11,
-    color: Colors.textSecondary,
   },
   section: { marginBottom: 24 },
   sectionHeader: {
@@ -380,17 +380,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Inter_700Bold',
     fontSize: 18,
-    color: Colors.text,
   },
   seeAll: {
     fontFamily: 'Inter_500Medium',
     fontSize: 13,
-    color: Colors.primary,
   },
   miniMatchCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
@@ -425,28 +422,11 @@ const styles = StyleSheet.create({
   miniMatchVenue: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: Colors.textSecondary,
     marginTop: 2,
-  },
-  compBadge: {
-    backgroundColor: Colors.primary + '20',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  compBadgeAway: {
-    backgroundColor: Colors.textTertiary + '20',
-  },
-  compBadgeText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
-    color: Colors.primary,
-    letterSpacing: 1,
   },
   announcementCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
@@ -463,12 +443,10 @@ const styles = StyleSheet.create({
   announcementTitle: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: Colors.text,
   },
   announcementBody: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
 });

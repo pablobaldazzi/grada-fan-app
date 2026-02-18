@@ -118,6 +118,10 @@ export interface CartItem {
   quantity: number;
   details: string;
   size?: string;
+  /** Ticket type or product id for checkout */
+  refId?: string;
+  /** Seat ids when using seat selection (from seat-holds) */
+  seatIds?: string[];
 }
 
 export const MOCK_CLUB: ClubConfig = {
