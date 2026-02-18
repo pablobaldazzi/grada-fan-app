@@ -1,6 +1,6 @@
 import type { Club } from './schemas';
 
-/** Rojinegro fallbacks (Club-Connect default) */
+/** Rojinegro fallbacks (grada-fan-app default) */
 const FALLBACK = {
   primary: '#E31E24',
   primaryDark: '#B71518',

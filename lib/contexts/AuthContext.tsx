@@ -2,7 +2,20 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { getStoredToken, storeToken, clearToken } from '../http';
 import { loginPassword, registerPassword, fetchProfile } from '../api';
 import { registerPush, unregisterPush } from '../push';
+import { getUseMockData } from '../demo-mode';
 import type { Fan } from '../schemas';
+
+// Helper to auto-login in demo mode
+async function autoLoginDemo() {
+  const res = await loginPassword({
+    clubId: 'mock-club-id',
+    email: 'demo@example.com',
+    password: 'demo',
+  });
+  await storeToken(res.accessToken);
+  const pushT = await registerPush();
+  return { res, pushT };
+}
 
 interface AuthContextValue {
   fan: Fan | null;
@@ -55,6 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             lastName: profile.lastName,
             phone: profile.phone,
           });
+        } else if (getUseMockData()) {
+          // Auto-login in demo mode with demo credentials
+          const { res, pushT } = await autoLoginDemo();
+          setToken(res.accessToken);
+          setFan(res.fan);
+          if (pushT) setPushToken(pushT);
         }
       } catch {
         await clearToken();

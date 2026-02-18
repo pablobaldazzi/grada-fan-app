@@ -12,6 +12,7 @@ import {
 import { router } from 'expo-router';
 import { useClub } from '@/lib/contexts/ClubContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { getUseMockData } from '@/lib/demo-mode';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
@@ -65,6 +66,13 @@ export default function LoginScreen() {
           <Text style={[styles.clubName, { color: theme.colors.primary }]}>{club?.name ?? 'Club'}</Text>
         </View>
         <Text style={[styles.title, { color: theme.colors.text }]}>Iniciar sesión</Text>
+        {getUseMockData() && (
+          <View style={[styles.demoBanner, { backgroundColor: theme.colors.info + '20' }]}>
+            <Text style={{ color: theme.colors.info, fontSize: 13 }}>
+              Modo Demo: Puedes usar cualquier email y contraseña
+            </Text>
+          </View>
+        )}
         {error ? (
           <View style={[styles.errorBanner, { backgroundColor: theme.colors.error + '20' }]}>
             <Text style={{ color: theme.colors.error, fontSize: 14 }}>{error}</Text>
@@ -91,6 +99,7 @@ const styles = StyleSheet.create({
   logoPlaceholderText: { color: '#fff', fontSize: 36, fontWeight: '700' },
   clubName: { fontSize: 18, fontWeight: '700', marginTop: 12 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
+  demoBanner: { padding: 12, borderRadius: 10, marginBottom: 16 },
   errorBanner: { padding: 12, borderRadius: 10, marginBottom: 16 },
   link: { alignItems: 'center', marginTop: 24 },
 });

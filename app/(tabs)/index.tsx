@@ -15,9 +15,12 @@ import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { defaultTheme } from "@/lib/theme";
 import { fetchNotifications } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/format";
 import type { BackendEvent } from "@/lib/schemas";
+
+const Colors = defaultTheme.colors;
 
 function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<string, string> }) {
   const eventDate = new Date(event.datetime);
