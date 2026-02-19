@@ -156,12 +156,6 @@ export default function HomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <Pressable
-              onPress={() => router.push("/profile")}
-              style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Ionicons name="person-circle-outline" size={24} color={colors.text} />
-            </Pressable>
-            <Pressable
               onPress={() => router.push("/notifications")}
               style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
             >
@@ -171,6 +165,12 @@ export default function HomeScreen() {
                   <Text style={[styles.badgeText, { color: colors.text }]}>{unreadCount}</Text>
                 </View>
               )}
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/profile")}
+              style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Ionicons name="person-circle-outline" size={24} color={colors.text} />
             </Pressable>
           </View>
         </View>
