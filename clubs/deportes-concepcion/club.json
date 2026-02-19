@@ -1,0 +1,35 @@
+{
+  "tenantKey": "deportes-concepcion",
+  "clubId": "club_deportes_concepcion_001",
+  "displayName": "Deportes Concepción",
+  "appName": "Deportes Concepción App",
+  "theme": {
+    "primary": "#8E44AD",
+    "primaryDark": "#6C3483",
+    "secondary": "#FFFFFF",
+    "background": "#0A0A0A",
+    "surface": "#151515",
+    "text": "#FFFFFF",
+    "accent": "#D7BDE2"
+  },
+  "logo": "conce_crest.png",
+  "deepLinkDomain": "elconce.cl",
+  "features": {
+    "home": true,
+    "membershipId": true,
+    "tickets": true,
+    "merch": true,
+    "benefits": true,
+    "experiences": true,
+    "notifications": true,
+    "academy": false
+  },
+  "legal": {
+    "privacyPolicy": "https://elconce.cl/privacy",
+    "termsOfService": "https://elconce.cl/terms"
+  },
+  "support": {
+    "email": "soporte@elconce.cl",
+    "ticketsFaq": "https://elconce.cl/"
+  }
+}

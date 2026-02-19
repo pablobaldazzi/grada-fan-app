@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { fetchNotificationPrefs, updateNotificationPrefs } from "@/lib/api";
 import type { NotificationPrefs } from "@/lib/schemas";
 
@@ -28,14 +28,14 @@ export default function NotificationPreferencesScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { theme } = useClub();
-  const { token } = useAuth();
+  const { isSignedIn } = useClerkAuth();
   const queryClient = useQueryClient();
   const colors = theme.colors;
 
   const { data: prefs, isLoading } = useQuery({
     queryKey: ['notification-prefs'],
     queryFn: fetchNotificationPrefs,
-    enabled: !!token,
+    enabled: !!isSignedIn,
   });
 
   const updateMutation = useMutation({
@@ -49,7 +49,7 @@ export default function NotificationPreferencesScreen() {
     updateMutation.mutate({ [key]: value });
   };
 
-  if (!token) {
+  if (!isSignedIn) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>

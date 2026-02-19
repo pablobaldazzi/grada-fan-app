@@ -14,7 +14,7 @@ import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { defaultTheme } from "@/lib/theme";
 import { fetchNotifications } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/format";
@@ -123,13 +123,13 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { club, theme } = useClub();
-  const { token } = useAuth();
+  const { isSignedIn } = useClerkAuth();
   const colors = theme.colors;
 
   const { data: notifData } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => fetchNotifications({ take: 10 }),
-    enabled: !!token,
+    enabled: isSignedIn,
   });
   const notifications = notifData?.items ?? [];
   const unreadCount = notifData?.unreadCount ?? 0;

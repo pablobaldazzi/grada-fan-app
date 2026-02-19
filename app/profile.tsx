@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { updateProfile } from "@/lib/api";
 
 function Field({
@@ -49,7 +49,7 @@ function Field({
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const { fan, refreshProfile } = useAuth();
+  const { fan, refreshProfile, logout } = useClerkAuth();
 
   const initial = useMemo(
     () => ({
@@ -127,10 +127,28 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Seguridad</Text>
-          <Text style={styles.muted}>
-            Cambio de contraseña y foto de perfil: próximo paso (requiere endpoints en backend).
-          </Text>
+          <Text style={styles.cardTitle}>Cuenta</Text>
+          <Pressable
+            onPress={() => {
+              Alert.alert("Cerrar sesión", "¿Estás seguro?", [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Cerrar sesión",
+                  style: "destructive",
+                  onPress: async () => {
+                    await logout();
+                    router.replace("/");
+                  },
+                },
+              ]);
+            }}
+            style={({ pressed }) => [
+              styles.dangerBtn,
+              { opacity: pressed ? 0.9 : 1 },
+            ]}
+          >
+            <Text style={styles.dangerBtnText}>Cerrar sesión</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
@@ -207,5 +225,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     lineHeight: 18,
+  },
+  dangerBtn: {
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#dc262620",
+    borderWidth: 1,
+    borderColor: "#dc262640",
+  },
+  dangerBtnText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    color: "#dc2626",
   },
 });

@@ -1,3 +1,11 @@
+jest.mock('expo-constants', () => ({
+  default: {
+    expoConfig: {
+      extra: {},
+    },
+  },
+}));
+
 describe('config', () => {
   it('has apiBaseUrl string', () => {
     const mod = require('../../lib/config');

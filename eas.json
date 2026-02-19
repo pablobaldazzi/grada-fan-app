@@ -1,0 +1,58 @@
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "rangers"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {}
+    },
+    "rangers_ios": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "rangers"
+      },
+      "ios": {}
+    },
+    "rangers_android": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "rangers"
+      },
+      "android": {}
+    },
+    "deportes_concepcion_ios": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "deportes-concepcion"
+      },
+      "ios": {}
+    },
+    "deportes_concepcion_android": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "deportes-concepcion"
+      },
+      "android": {}
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

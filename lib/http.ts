@@ -1,13 +1,5 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 import { config } from './config';
-
-const TOKEN_KEY = 'grada_access_token';
-
-// SecureStore doesn't work on web, use AsyncStorage as fallback
-const isWeb = Platform.OS === 'web';
 
 /**
  * Central axios instance. All API calls go through here.
@@ -19,11 +11,28 @@ export const http = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+let _getToken: (() => Promise<string | null>) | null = null;
+let _clubId: string | null = null;
+
+/**
+ * Call this once from the ClerkProvider-wrapped layer to supply the
+ * Clerk getToken function and current clubId to the axios interceptor.
+ */
+export function setHttpAuth(getToken: () => Promise<string | null>, clubId: string | null) {
+  _getToken = getToken;
+  _clubId = clubId;
+}
+
 http.interceptors.request.use(async (req) => {
   try {
-    const token = await getStoredToken();
-    if (token) {
-      req.headers.Authorization = `Bearer ${token}`;
+    if (_getToken) {
+      const token = await _getToken();
+      if (token) {
+        req.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    if (_clubId) {
+      req.headers['x-club-id'] = _clubId;
     }
   } catch {
     // Storage unavailable – continue without token
@@ -31,37 +40,16 @@ http.interceptors.request.use(async (req) => {
   return req;
 });
 
+// Legacy exports kept for backward compatibility during migration
 export async function getStoredToken(): Promise<string | null> {
-  try {
-    if (isWeb) {
-      return await AsyncStorage.getItem(TOKEN_KEY);
-    }
-    return await SecureStore.getItemAsync(TOKEN_KEY);
-  } catch {
-    return null;
-  }
+  if (_getToken) return _getToken();
+  return null;
 }
 
-export async function storeToken(token: string): Promise<void> {
-  try {
-    if (isWeb) {
-      await AsyncStorage.setItem(TOKEN_KEY, token);
-    } else {
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
-    }
-  } catch {
-    // Ignore storage errors
-  }
+export async function storeToken(_token: string): Promise<void> {
+  // No-op: Clerk manages tokens
 }
 
 export async function clearToken(): Promise<void> {
-  try {
-    if (isWeb) {
-      await AsyncStorage.removeItem(TOKEN_KEY);
-    } else {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
+  // No-op: Clerk manages tokens
 }

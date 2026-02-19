@@ -12,7 +12,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 
 function displayName(fan: { name?: string | null; firstName?: string | null; lastName?: string | null } | null): string {
   if (!fan) return 'Socio';
@@ -26,7 +26,7 @@ export default function MemberCardFullScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { club, theme } = useClub();
-  const { fan } = useAuth();
+  const { fan } = useClerkAuth();
   const colors = theme.colors;
   const name = displayName(fan);
 

@@ -1,23 +1,16 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Redirect } from 'expo-router';
-import { useAuth } from '@/lib/contexts/AuthContext';
 import { useClub } from '@/lib/contexts/ClubContext';
+import { useClerkAuth } from '@/lib/hooks/useClerkAuth';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ErrorBox } from '@/components/ui/ErrorBox';
 
-/**
- * Root index: redirect based on auth state.
- * - If club or auth loading -> show loading
- * - If club failed -> show error with retry
- * - If authenticated -> tabs
- * - Else -> auth login
- */
 export default function Index() {
   const { loading: clubLoading, error: clubError, retry, theme } = useClub();
-  const { token, loading: authLoading } = useAuth();
+  const { isSignedIn, isLoaded, loading: authLoading, profileComplete, profileStatus } = useClerkAuth();
 
-  if (clubLoading || authLoading) {
+  if (clubLoading || !isLoaded || authLoading) {
     return (
       <LoadingScreen message="Connecting to server... This may take a moment." />
     );
@@ -25,15 +18,16 @@ export default function Index() {
 
   if (clubError) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <ErrorBox message={clubError} onRetry={retry} />
       </View>
     );
   }
 
-  if (token) {
+  if (isSignedIn) {
+    if (profileStatus && !profileComplete) {
+      return <Redirect href="/complete-profile" />;
+    }
     return <Redirect href="/(tabs)" />;
   }
 

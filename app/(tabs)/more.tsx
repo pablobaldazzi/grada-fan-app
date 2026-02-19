@@ -13,7 +13,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useQueryClient } from "@tanstack/react-query";
-import Colors from "@/constants/colors";
+import { useClub } from "@/lib/contexts/ClubContext";
 import {
   MOCK_BENEFITS,
   MOCK_EXPERIENCES,
@@ -27,48 +27,48 @@ import { getUseMockData, setUseMockData } from "@/lib/demo-mode";
 
 type MoreTab = "benefits" | "experiences";
 
-function BenefitCard({ benefit }: { benefit: Benefit }) {
+function BenefitCard({ benefit, colors }: { benefit: Benefit; colors: Record<string, string> }) {
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push({ pathname: "/benefit-detail", params: { benefitId: benefit.id } });
       }}
-      style={({ pressed }) => [styles.benefitCard, { opacity: pressed ? 0.9 : 1 }]}
+      style={({ pressed }) => [styles.benefitCard, { opacity: pressed ? 0.9 : 1, backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
     >
       <View style={styles.benefitLeft}>
-        <View style={styles.discountBadge}>
-          <Text style={styles.discountText}>{benefit.discount}</Text>
+        <View style={[styles.discountBadge, { backgroundColor: colors.primary + "20" }]}>
+          <Text style={[styles.discountText, { color: colors.primary }]}>{benefit.discount}</Text>
         </View>
       </View>
       <View style={styles.benefitContent}>
         <View style={styles.benefitHeader}>
-          <Text style={styles.benefitPartner}>{benefit.partner}</Text>
+          <Text style={[styles.benefitPartner, { color: colors.textTertiary }]}>{benefit.partner}</Text>
           {benefit.membersOnly && (
             <View style={styles.memberOnlyBadge}>
-              <Ionicons name="star" size={9} color={Colors.gold} />
+              <Ionicons name="star" size={9} color={colors.gold} />
               <Text style={styles.memberOnlyText}>Socios</Text>
             </View>
           )}
         </View>
-        <Text style={styles.benefitTitle} numberOfLines={2}>
+        <Text style={[styles.benefitTitle, { color: colors.text }]} numberOfLines={2}>
           {benefit.title}
         </Text>
         {benefit.location && (
           <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={12} color={Colors.textTertiary} />
-            <Text style={styles.locationText} numberOfLines={1}>
+            <Ionicons name="location-outline" size={12} color={colors.textTertiary} />
+            <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
               {benefit.location}
             </Text>
           </View>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
     </Pressable>
   );
 }
 
-function ExperienceCard({ experience }: { experience: Experience }) {
+function ExperienceCard({ experience, colors }: { experience: Experience; colors: Record<string, string> }) {
   const spotsLow = experience.spotsRemaining <= 5;
 
   return (
@@ -77,31 +77,31 @@ function ExperienceCard({ experience }: { experience: Experience }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push({ pathname: "/experience-detail", params: { experienceId: experience.id } });
       }}
-      style={({ pressed }) => [styles.expCard, { opacity: pressed ? 0.9 : 1 }]}
+      style={({ pressed }) => [styles.expCard, { opacity: pressed ? 0.9 : 1, backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
     >
-      <View style={styles.expIconArea}>
-        <MaterialCommunityIcons name="star-four-points" size={28} color={Colors.primary} />
+      <View style={[styles.expIconArea, { backgroundColor: colors.primary + "15" }]}>
+        <MaterialCommunityIcons name="star-four-points" size={28} color={colors.primary} />
       </View>
       <View style={styles.expContent}>
         <View style={styles.expHeaderRow}>
-          <Text style={styles.expTitle} numberOfLines={1}>
+          <Text style={[styles.expTitle, { color: colors.text }]} numberOfLines={1}>
             {experience.title}
           </Text>
           {experience.membersOnly && (
             <View style={styles.memberOnlyBadge}>
-              <Ionicons name="star" size={9} color={Colors.gold} />
+              <Ionicons name="star" size={9} color={colors.gold} />
               <Text style={styles.memberOnlyText}>Socios</Text>
             </View>
           )}
         </View>
         <View style={styles.expMetaRow}>
-          <Text style={styles.expMeta}>
+          <Text style={[styles.expMeta, { color: colors.textSecondary }]}>
             {formatDate(experience.date)} - {experience.time}
           </Text>
         </View>
         <View style={styles.expBottomRow}>
-          <Text style={styles.expPrice}>{formatCLP(experience.price)}</Text>
-          <Text style={[styles.expSpots, spotsLow && styles.expSpotsLow]}>
+          <Text style={[styles.expPrice, { color: colors.primary }]}>{formatCLP(experience.price)}</Text>
+          <Text style={[styles.expSpots, { color: colors.textTertiary }, spotsLow && styles.expSpotsLow]}>
             {experience.spotsRemaining} cupos
           </Text>
         </View>
@@ -110,7 +110,7 @@ function ExperienceCard({ experience }: { experience: Experience }) {
   );
 }
 
-function BenefitsSection() {
+function BenefitsSection({ colors }: { colors: Record<string, string> }) {
   const [selectedCat, setSelectedCat] = useState("TODO");
 
   const filtered =
@@ -131,14 +131,24 @@ function BenefitsSection() {
               Haptics.selectionAsync();
               setSelectedCat(cat);
             }}
-            style={[styles.chip, selectedCat === cat && styles.chipActive]}
+            style={[
+              styles.chip,
+              { backgroundColor: selectedCat === cat ? colors.primary : colors.surfaceHighlight },
+            ]}
           >
-            <Text style={[styles.chipText, selectedCat === cat && styles.chipTextActive]}>{cat}</Text>
+            <Text
+              style={[
+                styles.chipText,
+                { color: selectedCat === cat ? colors.text : colors.textSecondary },
+              ]}
+            >
+              {cat}
+            </Text>
           </Pressable>
         ))}
       </ScrollView>
       {filtered.map((benefit) => (
-        <BenefitCard key={benefit.id} benefit={benefit} />
+        <BenefitCard key={benefit.id} benefit={benefit} colors={colors} />
       ))}
     </>
   );
@@ -150,6 +160,8 @@ export default function MoreScreen() {
   const [activeTab, setActiveTab] = useState<MoreTab>("benefits");
   const [useDemoMode, setUseDemoMode] = useState(getUseMockData);
   const queryClient = useQueryClient();
+  const { theme } = useClub();
+  const colors = theme.colors;
 
   const handleDemoModeToggle = async (value: boolean) => {
     await setUseMockData(value);
@@ -158,7 +170,7 @@ export default function MoreScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -168,19 +180,19 @@ export default function MoreScreen() {
         // We already apply safe-area top padding manually; avoid double inset on iOS
         contentInsetAdjustmentBehavior="never"
       >
-        <Text style={styles.title}>Mas</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Mas</Text>
 
-        <View style={[styles.demoRow, { backgroundColor: Colors.surface, borderColor: Colors.cardBorder }]}>
-          <Text style={[styles.demoLabel, { color: Colors.text }]}>Modo demo</Text>
+        <View style={[styles.demoRow, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+          <Text style={[styles.demoLabel, { color: colors.text }]}>Modo demo</Text>
           <Switch
             value={useDemoMode}
             onValueChange={handleDemoModeToggle}
-            trackColor={{ false: Colors.surfaceHighlight, true: Colors.primary + "80" }}
-            thumbColor={useDemoMode ? Colors.primary : Colors.textTertiary}
+            trackColor={{ false: colors.surfaceHighlight, true: colors.primary + "80" }}
+            thumbColor={useDemoMode ? colors.primary : colors.textTertiary}
           />
         </View>
 
-        <View style={styles.tabBar}>
+        <View style={[styles.tabBar, { backgroundColor: colors.surface }]}>
           {([
             { key: "benefits", label: "Beneficios", icon: "pricetag" },
             { key: "experiences", label: "Experiencias", icon: "sparkles" },
@@ -191,36 +203,40 @@ export default function MoreScreen() {
                 Haptics.selectionAsync();
                 setActiveTab(t.key);
               }}
-              style={[styles.tabBtn, activeTab === t.key && styles.tabBtnActive]}
+              style={[styles.tabBtn, activeTab === t.key && { backgroundColor: colors.primary }]}
             >
               <Ionicons
                 name={t.icon}
                 size={16}
-                color={activeTab === t.key ? Colors.text : Colors.textSecondary}
+                color={activeTab === t.key ? colors.text : colors.textSecondary}
               />
-              <Text style={[styles.tabBtnText, activeTab === t.key && styles.tabBtnTextActive]}>
+              <Text
+                style={[
+                  styles.tabBtnText,
+                  { color: activeTab === t.key ? colors.text : colors.textSecondary },
+                ]}
+              >
                 {t.label}
               </Text>
             </Pressable>
           ))}
         </View>
 
-        {activeTab === "benefits" && <BenefitsSection />}
+        {activeTab === "benefits" && <BenefitsSection colors={colors} />}
 
         {activeTab === "experiences" &&
-          MOCK_EXPERIENCES.map((exp) => <ExperienceCard key={exp.id} experience={exp} />)}
+          MOCK_EXPERIENCES.map((exp) => <ExperienceCard key={exp.id} experience={exp} colors={colors} />)}
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   scrollContent: { paddingHorizontal: 16 },
   title: {
     fontFamily: "Inter_700Bold",
     fontSize: 28,
-    color: Colors.text,
     marginBottom: 16,
   },
   demoRow: {
@@ -239,7 +255,6 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
@@ -254,46 +269,32 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  tabBtnActive: {
-    backgroundColor: Colors.primary,
-  },
   tabBtnText: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  tabBtnTextActive: {
-    color: Colors.text,
   },
   chipsContainer: { marginBottom: 16 },
   chips: { gap: 8 },
   chip: {
-    backgroundColor: Colors.surfaceHighlight,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
-  chipActive: { backgroundColor: Colors.primary },
   chipText: {
     fontFamily: "Inter_500Medium",
     fontSize: 12,
-    color: Colors.textSecondary,
   },
-  chipTextActive: { color: Colors.text },
   benefitCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     gap: 12,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
   },
   benefitLeft: { alignItems: "center" },
   discountBadge: {
-    backgroundColor: Colors.primary + "20",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -303,7 +304,6 @@ const styles = StyleSheet.create({
   discountText: {
     fontFamily: "Inter_700Bold",
     fontSize: 15,
-    color: Colors.primary,
   },
   benefitContent: { flex: 1 },
   benefitHeader: {
@@ -315,7 +315,6 @@ const styles = StyleSheet.create({
   benefitPartner: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 12,
-    color: Colors.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -323,7 +322,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.gold + "20",
+    backgroundColor: "#FFD70020",
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -331,37 +330,32 @@ const styles = StyleSheet.create({
   memberOnlyText: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 10,
-    color: Colors.gold,
+    color: "#FFD700",
   },
   benefitTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 14,
-    color: Colors.text,
     marginBottom: 6,
   },
   locationRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   locationText: {
     fontFamily: "Inter_400Regular",
     fontSize: 12,
-    color: Colors.textSecondary,
     flex: 1,
   },
   expCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     gap: 12,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
   },
   expIconArea: {
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: Colors.primary + "15",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -370,27 +364,23 @@ const styles = StyleSheet.create({
   expTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 14,
-    color: Colors.text,
     flex: 1,
   },
   expMetaRow: { marginTop: 4 },
   expMeta: {
     fontFamily: "Inter_400Regular",
     fontSize: 12,
-    color: Colors.textSecondary,
   },
   expBottomRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
   expPrice: {
     fontFamily: "Inter_700Bold",
     fontSize: 14,
-    color: Colors.primary,
   },
   expSpots: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 12,
-    color: Colors.textTertiary,
   },
   expSpotsLow: {
-    color: Colors.warning,
+    color: "#F39C12",
   },
 });

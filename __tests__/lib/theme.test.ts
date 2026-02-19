@@ -31,6 +31,36 @@ describe('buildTheme', () => {
     expect(theme.colors.background).toBe('#222');
     expect(theme.colors.text).toBe('#EEE');
   });
+  it('prefers app theme over store theme when both provided', () => {
+    const club = {
+      primaryColor: '#FDB913',
+      appPrimaryColor: '#00FF00',
+      secondaryColor: '#000',
+      appSecondaryColor: '#111111',
+      storeBackgroundColor: '#f3f4f6',
+      appBackgroundColor: '#0A0A0A',
+      navBarTextColor: '#ffffff',
+      appTextColor: '#EEEEEE',
+    } as Club;
+    const theme = buildTheme(club);
+    expect(theme.colors.primary).toBe('#00FF00');
+    expect(theme.colors.secondary).toBe('#111111');
+    expect(theme.colors.background).toBe('#0A0A0A');
+    expect(theme.colors.text).toBe('#EEEEEE');
+  });
+  it('falls back to store theme when app theme is not set', () => {
+    const club = {
+      primaryColor: '#FDB913',
+      secondaryColor: '#000',
+      storeBackgroundColor: '#f3f4f6',
+      navBarTextColor: '#ffffff',
+    } as Club;
+    const theme = buildTheme(club);
+    expect(theme.colors.primary).toBe('#FDB913');
+    expect(theme.colors.secondary).toBe('#000');
+    expect(theme.colors.background).toBe('#f3f4f6');
+    expect(theme.colors.text).toBe('#ffffff');
+  });
   it('returns fonts fallback when club has no font', () => {
     const theme = buildTheme(null);
     expect(theme.fonts.regular).toBe('Inter_400Regular');

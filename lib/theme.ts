@@ -58,23 +58,28 @@ export interface Theme {
 }
 
 export function buildTheme(club?: Club | null): Theme {
+  const primary = club?.appPrimaryColor ?? club?.primaryColor ?? FALLBACK.primary;
+  const secondary = club?.appSecondaryColor ?? club?.secondaryColor ?? FALLBACK.secondary;
+  const background = club?.appBackgroundColor ?? club?.storeBackgroundColor ?? FALLBACK.background;
+  const text = club?.appTextColor ?? club?.navBarTextColor ?? FALLBACK.text;
+
   return {
     colors: {
-      primary: club?.primaryColor ?? FALLBACK.primary,
+      primary,
       primaryDark: FALLBACK.primaryDark,
       primaryLight: FALLBACK.primaryLight,
-      secondary: club?.secondaryColor ?? FALLBACK.secondary,
-      background: club?.storeBackgroundColor ?? FALLBACK.background,
+      secondary,
+      background,
       surface: FALLBACK.surface,
       surfaceLight: FALLBACK.surfaceLight,
       surfaceHighlight: FALLBACK.surfaceHighlight,
       card: FALLBACK.card,
       cardBorder: FALLBACK.cardBorder,
-      text: club?.navBarTextColor ?? FALLBACK.text,
+      text,
       textSecondary: FALLBACK.textSecondary,
       textTertiary: FALLBACK.textTertiary,
       textMuted: FALLBACK.textMuted,
-      tabActive: club?.primaryColor ?? FALLBACK.tabActive,
+      tabActive: primary,
       tabInactive: FALLBACK.tabInactive,
       success: FALLBACK.success,
       warning: FALLBACK.warning,

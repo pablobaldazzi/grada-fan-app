@@ -3,6 +3,8 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+    "sync-assets": "tsx scripts/sync-club-assets.ts",
+    "generate-assets": "tsx scripts/generate-assets-from-logo.ts",
     "postinstall": "patch-package",
     "expo:dev": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 npx expo start --localhost",
     "server:dev": "NODE_ENV=development tsx server/index.ts",
@@ -12,11 +14,18 @@
     "server:prod": "NODE_ENV=production node server_dist/index.js",
     "db:push": "drizzle-kit push",
     "start": "npx expo start",
+    "dev:rangers": "APP_VARIANT=rangers npx expo start",
+    "dev:concepcion": "APP_VARIANT=deportes-concepcion npx expo start",
+    "build:rangers:ios": "eas build --profile rangers_ios --platform ios",
+    "build:rangers:android": "eas build --profile rangers_android --platform android",
+    "build:concepcion:ios": "eas build --profile deportes_concepcion_ios --platform ios",
+    "build:concepcion:android": "eas build --profile deportes_concepcion_android --platform android",
     "test": "jest",
     "lint": "npx expo lint",
     "lint:fix": "npx expo lint --fix"
   },
   "dependencies": {
+    "@clerk/clerk-expo": "^2.19.25",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -83,6 +92,7 @@
     "jest": "^30.2.0",
     "patch-package": "^8.0.0",
     "react-test-renderer": "^19.1.0",
+    "sharp": "^0.34.5",
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   },

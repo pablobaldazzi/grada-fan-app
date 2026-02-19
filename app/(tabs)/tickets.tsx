@@ -16,7 +16,7 @@ import * as Haptics from "expo-haptics";
 import QRCode from "react-native-qrcode-svg";
 import { useQuery } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { fetchOrders } from "@/lib/api";
 import { formatDate, formatTime, formatCLP } from "@/lib/format";
 import type { BackendEvent, Ticket } from "@/lib/schemas";
@@ -123,7 +123,7 @@ export default function TicketsScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { club, theme } = useClub();
-  const { token } = useAuth();
+  const { isSignedIn } = useClerkAuth();
   const colors = theme.colors;
   const [tab, setTab] = useState<'upcoming' | 'mytickets'>('upcoming');
 
@@ -136,7 +136,7 @@ export default function TicketsScreen() {
   } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrders,
-    enabled: tab === 'mytickets' && !!token,
+    enabled: tab === 'mytickets' && !!isSignedIn,
   });
 
   const tickets = useMemo((): TicketWithOrderId[] => {

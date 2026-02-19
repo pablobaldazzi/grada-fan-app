@@ -17,7 +17,7 @@ import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useCart } from "@/lib/cart-context";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { checkout } from "@/lib/api";
 import { formatCLP } from "@/lib/format";
 
@@ -25,7 +25,7 @@ export default function CartScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { club, theme } = useClub();
-  const { fan } = useAuth();
+  const { fan } = useClerkAuth();
   const { items, removeItem, updateQuantity, total, clearCart, itemCount } = useCart();
   const [email, setEmail] = useState(fan?.email ?? '');
   const [checkingOut, setCheckingOut] = useState(false);

@@ -13,6 +13,10 @@ export const ClubSchema = z.object({
   navBarBackgroundColor: z.string().nullable().optional(),
   navBarTextColor: z.string().nullable().optional(),
   storeBackgroundColor: z.string().nullable().optional(),
+  appPrimaryColor: z.string().nullable().optional(),
+  appSecondaryColor: z.string().nullable().optional(),
+  appBackgroundColor: z.string().nullable().optional(),
+  appTextColor: z.string().nullable().optional(),
   bannerUrl: z.string().nullable().optional(),
   font: z.string().nullable().optional(),
 });

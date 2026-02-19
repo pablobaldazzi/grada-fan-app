@@ -5,12 +5,13 @@ import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
+import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { loadStoredDemoMode } from "@/lib/demo-mode";
 import { queryClient } from "@/lib/query-client";
 import { CartProvider } from "@/lib/cart-context";
 import { ClubProvider } from "@/lib/contexts/ClubContext";
-import { AuthProvider } from "@/lib/contexts/AuthContext";
+import { tokenCache } from "@/lib/clerk-token-cache";
 import {
   useFonts,
   Inter_400Regular,
@@ -18,6 +19,15 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
+
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+if (!CLERK_PUBLISHABLE_KEY?.trim()) {
+  throw new Error(
+    'Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Add it to your .env file.\n' +
+    'Get a key from https://dashboard.clerk.com → API Keys.',
+  );
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +44,9 @@ function RootLayoutNav() {
     >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+      {/* Complete profile (blocks navigation until done) */}
+      <Stack.Screen name="complete-profile" options={{ headerShown: false, gestureEnabled: false }} />
 
       {/* Regular pushed screens */}
       <Stack.Screen name="profile" options={{ headerShown: false, presentation: "card" }} />
@@ -74,20 +87,22 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ClubProvider>
-          <AuthProvider>
-            <CartProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardProvider>
-                  <StatusBar style="light" />
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </CartProvider>
-          </AuthProvider>
-        </ClubProvider>
-      </QueryClientProvider>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!} tokenCache={tokenCache}>
+        <ClerkLoaded>
+          <QueryClientProvider client={queryClient}>
+            <ClubProvider>
+              <CartProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <StatusBar style="light" />
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </CartProvider>
+            </ClubProvider>
+          </QueryClientProvider>
+        </ClerkLoaded>
+      </ClerkProvider>
     </ErrorBoundary>
   );
 }

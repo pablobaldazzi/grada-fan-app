@@ -13,7 +13,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import Colors from "@/constants/colors";
 
 function displayName(fan: { name?: string | null; firstName?: string | null; lastName?: string | null } | null): string {
@@ -25,7 +25,7 @@ function displayName(fan: { name?: string | null; firstName?: string | null; las
 }
 
 function MemberCard({ colors }: { colors: Record<string, string> }) {
-  const { fan } = useAuth();
+  const { fan } = useClerkAuth();
   const name = displayName(fan);
 
   return (
@@ -71,7 +71,7 @@ export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { club, theme } = useClub();
-  const { fan } = useAuth();
+  const { fan } = useClerkAuth();
   const colors = theme.colors;
   const name = displayName(fan);
 
