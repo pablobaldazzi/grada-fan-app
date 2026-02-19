@@ -104,7 +104,17 @@ function getAppName(): string {
     const appJson = JSON.parse(appJsonContent);
     return appJson.expo?.name || "App Landing Page";
   } catch {
-    return "App Landing Page";
+    // Fallback: derive from club-config using EXPO_PUBLIC_CLUB_SLUG / APP_VARIANT
+    try {
+      const { CLUB_CONFIGS, CLUB_SLUG_TO_VARIANT } = require(path.resolve(process.cwd(), "club-config.js"));
+      const clubSlug = process.env.EXPO_PUBLIC_CLUB_SLUG;
+      const variantFromSlug = clubSlug ? CLUB_SLUG_TO_VARIANT[clubSlug] : undefined;
+      const variant = process.env.APP_VARIANT || variantFromSlug || "rangers";
+      const club = CLUB_CONFIGS[variant] || CLUB_CONFIGS.rangers;
+      return club?.name || "App Landing Page";
+    } catch {
+      return "App Landing Page";
+    }
   }
 }
 

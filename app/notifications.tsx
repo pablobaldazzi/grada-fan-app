@@ -17,6 +17,7 @@ import Colors from "@/constants/colors";
 import { fetchNotifications, markNotificationRead } from "@/lib/api";
 import { timeAgo } from "@/lib/mock-data";
 import type { AppNotification } from "@/lib/schemas";
+import { getDisplayType } from "@/lib/notification-utils";
 
 function NotificationItem({
   notification,
@@ -38,7 +39,8 @@ function NotificationItem({
     offer: "Oferta",
     club: "Club",
   };
-  const color = typeColors[notification.type ?? ""] || Colors.info;
+  const displayType = getDisplayType(notification.type);
+  const color = typeColors[displayType] || Colors.info;
   const timeStr = notification.createdAt ? timeAgo(notification.createdAt) : "";
 
   return (
@@ -58,7 +60,7 @@ function NotificationItem({
         <View style={styles.notifHeader}>
           <View style={[styles.notifTypeBadge, { backgroundColor: color + "20" }]}>
             <Text style={[styles.notifTypeText, { color }]}>
-              {typeLabels[notification.type ?? ""] ?? "Club"}
+              {typeLabels[displayType] ?? "Club"}
             </Text>
           </View>
           <Text style={styles.notifTime}>{timeStr}</Text>
@@ -108,18 +110,32 @@ export default function NotificationsScreen() {
       markReadMutation.mutate(id);
     }
 
-    // Simple routing rules (until backend provides deep-link data)
-    const t = (item.type ?? "").toLowerCase();
-    if (t === "ticket" || t === "club") {
-      router.push("/(tabs)/tickets");
+    // Use data payload for deep linking when available
+    const data = item.data as { kind?: string; eventId?: string; refId?: string } | undefined;
+    if (data?.kind === "new-match" && data.eventId) {
+      router.push({ pathname: "/match-tickets", params: { matchId: data.eventId } });
       return;
     }
-    if (t === "promo" || t === "offer") {
+    if (data?.kind === "new-benefit" && data.refId) {
+      router.push({ pathname: "/benefit-detail", params: { benefitId: data.refId } });
+      return;
+    }
+    if (data?.kind === "promo") {
       router.push("/(tabs)/store");
       return;
     }
 
-    // Fallback
+    // Fallback to type-based routing
+    const displayType = getDisplayType(item.type);
+    if (displayType === "ticket" || displayType === "club") {
+      router.push("/(tabs)/tickets");
+      return;
+    }
+    if (displayType === "promo" || displayType === "offer") {
+      router.push("/(tabs)/store");
+      return;
+    }
+
     router.push("/(tabs)");
   };
 

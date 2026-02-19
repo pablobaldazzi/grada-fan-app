@@ -50,6 +50,20 @@
         "APP_VARIANT": "deportes-concepcion"
       },
       "android": {}
+    },
+    "palestino_ios": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "palestino"
+      },
+      "ios": {}
+    },
+    "palestino_android": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "palestino"
+      },
+      "android": {}
     }
   },
   "submit": {

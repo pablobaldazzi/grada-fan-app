@@ -1,0 +1,35 @@
+{
+  "tenantKey": "palestino",
+  "clubId": "club_palestino_001",
+  "displayName": "Palestino",
+  "appName": "Palestino App",
+  "theme": {
+    "primary": "#007A3D",
+    "primaryDark": "#005a2b",
+    "secondary": "#CE1126",
+    "background": "#0A0A0A",
+    "surface": "#151515",
+    "text": "#FFFFFF",
+    "accent": "#FFFFFF"
+  },
+  "logo": "palestino_crest.png",
+  "deepLinkDomain": "palestino.cl",
+  "features": {
+    "home": true,
+    "membershipId": true,
+    "tickets": true,
+    "merch": true,
+    "benefits": true,
+    "experiences": true,
+    "notifications": true,
+    "academy": false
+  },
+  "legal": {
+    "privacyPolicy": "https://palestino.cl/privacy",
+    "termsOfService": "https://palestino.cl/terms"
+  },
+  "support": {
+    "email": "soporte@palestino.cl",
+    "ticketsFaq": "https://palestino.cl/faq/tickets"
+  }
+}

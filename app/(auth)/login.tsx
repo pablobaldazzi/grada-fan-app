@@ -10,6 +10,7 @@ import {
   Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { useSignIn } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useClub } from '@/lib/contexts/ClubContext';
@@ -64,13 +65,15 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
     try {
+      const redirectUrl = Linking.createURL('');
       const { createdSessionId, signIn: si } = await signIn.create({
         strategy: 'oauth_google',
+        redirectUrl,
       });
 
-      const redirectUrl = (si as any)?.firstFactorVerification?.externalVerificationRedirectURL;
-      if (redirectUrl) {
-        await WebBrowser.openAuthSessionAsync(redirectUrl.toString(), 'grada://');
+      const externalUrl = (si as any)?.firstFactorVerification?.externalVerificationRedirectURL;
+      if (externalUrl) {
+        await WebBrowser.openAuthSessionAsync(externalUrl.toString(), redirectUrl);
       }
 
       if (createdSessionId) {

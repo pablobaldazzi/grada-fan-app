@@ -7,6 +7,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
 import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PushNotificationHandler } from "@/components/PushNotificationHandler";
 import { loadStoredDemoMode } from "@/lib/demo-mode";
 import { queryClient } from "@/lib/query-client";
 import { CartProvider } from "@/lib/cart-context";
@@ -33,34 +34,36 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        headerBackTitle: "Back",
-        // Make push/pop transitions feel consistent and smooth
-        animation: "slide_from_right",
-        gestureEnabled: true,
-      }}
-    >
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <>
+      <PushNotificationHandler />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          headerBackTitle: "Back",
+          animation: "slide_from_right",
+          gestureEnabled: true,
+        }}
+      >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-      {/* Complete profile (blocks navigation until done) */}
-      <Stack.Screen name="complete-profile" options={{ headerShown: false, gestureEnabled: false }} />
+        {/* Complete profile (blocks navigation until done) */}
+        <Stack.Screen name="complete-profile" options={{ headerShown: false, gestureEnabled: false }} />
 
-      {/* Regular pushed screens */}
-      <Stack.Screen name="profile" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="notifications" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="notification-preferences" options={{ headerShown: false, presentation: "card" }} />
+        {/* Regular pushed screens */}
+        <Stack.Screen name="profile" options={{ headerShown: false, presentation: "card" }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false, presentation: "card" }} />
+        <Stack.Screen name="notification-preferences" options={{ headerShown: false, presentation: "card" }} />
 
-      {/* Modals */}
-      <Stack.Screen name="match-tickets" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="product-detail" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="benefit-detail" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="experience-detail" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="cart" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="member-card-full" options={{ headerShown: false, presentation: "fullScreenModal" }} />
-    </Stack>
+        {/* Modals */}
+        <Stack.Screen name="match-tickets" options={{ headerShown: false, presentation: "modal" }} />
+        <Stack.Screen name="product-detail" options={{ headerShown: false, presentation: "modal" }} />
+        <Stack.Screen name="benefit-detail" options={{ headerShown: false, presentation: "modal" }} />
+        <Stack.Screen name="experience-detail" options={{ headerShown: false, presentation: "modal" }} />
+        <Stack.Screen name="cart" options={{ headerShown: false, presentation: "modal" }} />
+        <Stack.Screen name="member-card-full" options={{ headerShown: false, presentation: "fullScreenModal" }} />
+      </Stack>
+    </>
   );
 }
 

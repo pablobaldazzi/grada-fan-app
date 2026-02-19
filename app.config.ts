@@ -1,7 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { CLUB_CONFIGS } = require('./club-config.js');
+const { CLUB_CONFIGS, CLUB_SLUG_TO_VARIANT } = require('./club-config.js');
 
-const variant = process.env.APP_VARIANT || 'rangers';
+// Derive variant: APP_VARIANT, or from EXPO_PUBLIC_CLUB_SLUG
+const clubSlug = process.env.EXPO_PUBLIC_CLUB_SLUG;
+const variantFromSlug = clubSlug ? CLUB_SLUG_TO_VARIANT[clubSlug] : undefined;
+const variant = process.env.APP_VARIANT || variantFromSlug || 'rangers';
 const club = CLUB_CONFIGS[variant] || CLUB_CONFIGS.rangers;
 const apiBaseUrl =
   process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3002';
@@ -51,6 +54,8 @@ export default {
     extra: {
       clubSlug: club.clubSlug,
       apiBaseUrl,
+      /** Build variant for static assets (icon, favicon). Used by LoadingScreen before club fetches. */
+      assetVariant: variant,
     },
   },
 };

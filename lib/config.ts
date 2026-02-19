@@ -10,10 +10,13 @@ export const config = {
     extra.apiBaseUrl ??
     process.env.EXPO_PUBLIC_API_BASE_URL ??
     'http://localhost:3002',
+  /** API club slug. EXPO_PUBLIC_CLUB_SLUG overrides build-time extra when set. */
   clubSlug:
-    extra.clubSlug ??
     process.env.EXPO_PUBLIC_CLUB_SLUG ??
+    extra.clubSlug ??
     'rangers',
+  /** Build variant for static assets (icon, favicon). Matches app.config. */
+  assetVariant: (extra.assetVariant as string) || 'rangers',
   /** When true, use fake data instead of backend. */
   useMockData: process.env.EXPO_PUBLIC_USE_MOCK_DATA === 'true',
 } as const;

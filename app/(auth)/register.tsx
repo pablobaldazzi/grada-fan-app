@@ -10,6 +10,7 @@ import {
   Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { useSignUp } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useClub } from '@/lib/contexts/ClubContext';
@@ -97,13 +98,15 @@ export default function RegisterScreen() {
     setLoading(true);
     setError('');
     try {
+      const redirectUrl = Linking.createURL('');
       const { createdSessionId, signUp: su } = await signUp.create({
         strategy: 'oauth_google',
+        redirectUrl,
       });
 
-      const redirectUrl = (su as any)?.verifications?.externalAccount?.externalVerificationRedirectURL;
-      if (redirectUrl) {
-        await WebBrowser.openAuthSessionAsync(redirectUrl.toString(), 'grada://');
+      const externalUrl = (su as any)?.verifications?.externalAccount?.externalVerificationRedirectURL;
+      if (externalUrl) {
+        await WebBrowser.openAuthSessionAsync(externalUrl.toString(), redirectUrl);
       }
 
       if (createdSessionId) {
