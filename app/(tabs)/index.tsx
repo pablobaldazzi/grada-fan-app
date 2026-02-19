@@ -156,13 +156,13 @@ export default function HomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <Pressable
-              onPress={() => router.push("/cart")}
+              onPress={() => router.push("/profile")}
               style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons name="bag-outline" size={22} color={colors.text} />
+              <Ionicons name="person-circle-outline" size={24} color={colors.text} />
             </Pressable>
             <Pressable
-              onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "notifications" } })}
+              onPress={() => router.push("/notifications")}
               style={({ pressed }) => [styles.headerBtn, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
             >
               <Ionicons name="notifications-outline" size={22} color={colors.text} />
@@ -215,7 +215,7 @@ export default function HomeScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Novedades</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Noticias</Text>
           </View>
           {recentNotifs.map((n) => (
             <AnnouncementCard key={n.id} title={n.title} body={n.body ?? ''} type={n.type ?? 'club'} colors={colors} />
