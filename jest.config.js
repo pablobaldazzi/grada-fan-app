@@ -8,7 +8,16 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { useESM: false }],
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        useESM: false,
+        tsconfig: {
+          jsx: 'react-jsx',
+          module: 'commonjs',
+        },
+      },
+    ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testPathIgnorePatterns: ['/node_modules/'],
