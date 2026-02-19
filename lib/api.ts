@@ -43,6 +43,10 @@ export async function fetchClubBySlug(slug: string): Promise<ClubWithRelations> 
     return ClubWithRelationsSchema.parse(mockClubWithRelations);
   }
   const { data } = await http.get(`/public/clubs/${slug}`);
+  // Some backends may (incorrectly) return an empty body or plain text.
+  if (!data || typeof data !== 'object') {
+    throw new Error(`Club not found (slug: "${slug}")`);
+  }
   return ClubWithRelationsSchema.parse(data);
 }
 
