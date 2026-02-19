@@ -85,8 +85,15 @@ export default function NotificationsScreen() {
 
   const markReadMutation = useMutation({
     mutationFn: markNotificationRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    // Avoid full refetch (can cause iOS list "jump" / scroll bounce)
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["notifications"], (prev: any) => {
+        if (!prev?.items) return prev;
+        return {
+          ...prev,
+          items: prev.items.map((n: AppNotification) => (n.id === updated.id ? updated : n)),
+        };
+      });
     },
   });
 
@@ -94,9 +101,26 @@ export default function NotificationsScreen() {
 
   const handleNotificationPress = (id: string) => {
     const item = notifData?.items.find((n) => n.id === id);
-    if (item && !item.readAt) {
+    if (!item) return;
+
+    // Mark read (but don't refetch / jump)
+    if (!item.readAt) {
       markReadMutation.mutate(id);
     }
+
+    // Simple routing rules (until backend provides deep-link data)
+    const t = (item.type ?? "").toLowerCase();
+    if (t === "ticket" || t === "club") {
+      router.push("/(tabs)/tickets");
+      return;
+    }
+    if (t === "promo" || t === "offer") {
+      router.push("/(tabs)/store");
+      return;
+    }
+
+    // Fallback
+    router.push("/(tabs)");
   };
 
   return (
@@ -131,6 +155,12 @@ export default function NotificationsScreen() {
             onPress={() => handleNotificationPress(notif.id)}
           />
         ))}
+
+        {notifications.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>No hay avisos por ahora.</Text>
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -211,5 +241,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 4,
+  },
+  empty: {
+    marginTop: 20,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
 });

@@ -23,16 +23,30 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false, headerBackTitle: "Back" }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        headerBackTitle: "Back",
+        // Make push/pop transitions feel consistent and smooth
+        animation: "slide_from_right",
+        gestureEnabled: true,
+      }}
+    >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+      {/* Regular pushed screens */}
+      <Stack.Screen name="profile" options={{ headerShown: false, presentation: "card" }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false, presentation: "card" }} />
+      <Stack.Screen name="notification-preferences" options={{ headerShown: false, presentation: "card" }} />
+
+      {/* Modals */}
       <Stack.Screen name="match-tickets" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="product-detail" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="benefit-detail" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="experience-detail" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="cart" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="member-card-full" options={{ headerShown: false, presentation: "fullScreenModal" }} />
-      <Stack.Screen name="notification-preferences" options={{ headerShown: false }} />
     </Stack>
   );
 }
