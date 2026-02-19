@@ -9,26 +9,34 @@ import { registerDeviceToken, unregisterDeviceToken } from './api';
  * Returns the token string or null if unavailable (e.g. simulator, permission denied).
  */
 export async function getExpoPushToken(): Promise<string | null> {
-  if (!Device.isDevice) return null;
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let finalStatus = existing;
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-  if (finalStatus !== 'granted') return null;
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'Default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
+  try {
+    // In Expo Go (SDK 53+), expo-notifications has limitations and may throw.
+    if (!Device.isDevice) return null;
+
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    let finalStatus = existing;
+    if (existing !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') return null;
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+      });
+    }
+
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: projectId ?? undefined,
     });
+    return tokenData.data;
+  } catch {
+    return null;
   }
-  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: projectId ?? undefined,
-  });
-  return tokenData.data;
 }
 
 /**
