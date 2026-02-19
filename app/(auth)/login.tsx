@@ -26,7 +26,10 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    if (!club) return;
+    if (!club) {
+      setError('El club todavía no carga. Reintenta en unos segundos.');
+      return;
+    }
     if (!email.trim() || !password) {
       setError('Ingresa tu email y contraseña.');
       return;
