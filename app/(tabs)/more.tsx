@@ -233,7 +233,8 @@ export default function MoreScreen() {
           { paddingTop: insets.top + webTopInset + 16, paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
+        // We already apply safe-area top padding manually; avoid double inset on iOS
+        contentInsetAdjustmentBehavior="never"
       >
         <Text style={styles.title}>Mas</Text>
 

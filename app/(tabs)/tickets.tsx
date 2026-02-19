@@ -156,7 +156,8 @@ export default function TicketsScreen() {
           { paddingTop: insets.top + webTopInset + 16, paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
+        // We already apply safe-area top padding manually; avoid double inset on iOS
+        contentInsetAdjustmentBehavior="never"
         refreshControl={
           tab === 'mytickets' ? (
             <RefreshControl

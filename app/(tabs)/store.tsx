@@ -76,7 +76,8 @@ export default function StoreScreen() {
           { paddingTop: insets.top + webTopInset + 16, paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
+        // We already apply safe-area top padding manually; avoid double inset on iOS
+        contentInsetAdjustmentBehavior="never"
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Tienda</Text>

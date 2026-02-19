@@ -83,7 +83,8 @@ export default function MembershipScreen() {
           { paddingTop: insets.top + webTopInset + 16, paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
+        // We already apply safe-area top padding manually; avoid double inset on iOS
+        contentInsetAdjustmentBehavior="never"
       >
         <Text style={[styles.title, { color: colors.text }]}>{club?.name ?? 'Club'} ID</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Tu carnet digital de socio</Text>
