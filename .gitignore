@@ -46,3 +46,6 @@ yarn-error.*
 
 # Generated runtime config
 lib/generated-config.json
+
+# Generated public assets (favicon copied per variant)
+public/favicon.png
