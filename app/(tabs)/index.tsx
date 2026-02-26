@@ -21,6 +21,7 @@ import { getClubLogo, parseMatchTeams, getTeamSlug } from "@/lib/club-logos";
 import { fetchNotifications } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/format";
 import { getMockNews, type NewsArticle } from "@/lib/mock-data";
+import { getStandingsForClub, type StandingEntry } from "@/lib/standings-data";
 import type { BackendEvent } from "@/lib/schemas";
 
 function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEvent; colors: Record<string, string>; clubSlug?: string; isLight?: boolean }) {
@@ -139,6 +140,61 @@ function QuickAction({ icon, label, onPress, colors }: { icon: any; label: strin
   );
 }
 
+function StandingsRow({ entry, colors, isHighlighted }: { entry: StandingEntry; colors: Record<string, string>; isHighlighted: boolean }) {
+  const logoSource = entry.logoUrl ? { uri: entry.logoUrl } : getClubLogo(entry.slug);
+  const rowBg = isHighlighted ? colors.primary + '15' : 'transparent';
+  const borderLeft = isHighlighted ? colors.primary : 'transparent';
+
+  return (
+    <View style={[standingsStyles.row, { backgroundColor: rowBg, borderLeftColor: borderLeft }]}>
+      <Text style={[standingsStyles.pos, { color: colors.textSecondary }]}>{entry.position}</Text>
+      <Image source={logoSource} style={standingsStyles.logo} resizeMode="contain" />
+      <Text style={[standingsStyles.teamName, { color: colors.text }, isHighlighted && { fontFamily: 'Inter_700Bold' }]} numberOfLines={1}>
+        {entry.shortName}
+      </Text>
+      <Text style={[standingsStyles.stat, { color: colors.textSecondary }]}>{entry.played}</Text>
+      <Text style={[standingsStyles.stat, { color: colors.textSecondary }]}>{entry.won}</Text>
+      <Text style={[standingsStyles.stat, { color: colors.textSecondary }]}>{entry.drawn}</Text>
+      <Text style={[standingsStyles.stat, { color: colors.textSecondary }]}>{entry.lost}</Text>
+      <Text style={[standingsStyles.statGd, { color: entry.goalDifference > 0 ? '#22C55E' : entry.goalDifference < 0 ? '#EF4444' : colors.textSecondary }]}>
+        {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
+      </Text>
+      <Text style={[standingsStyles.pts, { color: colors.text }]}>{entry.points}</Text>
+    </View>
+  );
+}
+
+function StandingsTable({ colors, clubSlug }: { colors: Record<string, string>; clubSlug?: string }) {
+  const league = getStandingsForClub(clubSlug);
+
+  return (
+    <View style={[standingsStyles.container, { backgroundColor: colors.surface }]}>
+      <View style={standingsStyles.headerRow}>
+        <Text style={[standingsStyles.headerPos, { color: colors.textTertiary }]}>#</Text>
+        <View style={standingsStyles.headerTeamSpacer} />
+        <Text style={[standingsStyles.headerTeamLabel, { color: colors.textTertiary }]}>Equipo</Text>
+        <Text style={[standingsStyles.headerStat, { color: colors.textTertiary }]}>PJ</Text>
+        <Text style={[standingsStyles.headerStat, { color: colors.textTertiary }]}>G</Text>
+        <Text style={[standingsStyles.headerStat, { color: colors.textTertiary }]}>E</Text>
+        <Text style={[standingsStyles.headerStat, { color: colors.textTertiary }]}>P</Text>
+        <Text style={[standingsStyles.headerStatGd, { color: colors.textTertiary }]}>DG</Text>
+        <Text style={[standingsStyles.headerPts, { color: colors.textTertiary }]}>PTS</Text>
+      </View>
+      {league.entries.map((entry) => (
+        <StandingsRow
+          key={entry.slug}
+          entry={entry}
+          colors={colors}
+          isHighlighted={entry.slug === clubSlug}
+        />
+      ))}
+      <Text style={[standingsStyles.updated, { color: colors.textTertiary }]}>
+        Actualizado: {league.updatedAt} · {league.matchday}
+      </Text>
+    </View>
+  );
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
@@ -154,6 +210,7 @@ export default function HomeScreen() {
   const unreadCount = notifData?.unreadCount ?? 0;
 
   const recentNews = getMockNews().slice(0, 3);
+  const leagueData = getStandingsForClub(club?.slug);
 
   const firstEvent = club?.events?.[0];
   const moreEvents = club?.events?.slice(1, 4) ?? [];
@@ -201,7 +258,7 @@ export default function HomeScreen() {
           <QuickAction icon="card" label="Mi Carnet" onPress={() => router.push("/(tabs)/membership")} colors={colors} />
           <QuickAction icon="ticket" label="Entradas" onPress={() => router.push("/(tabs)/tickets")} colors={colors} />
           <QuickAction icon="bag" label="Tienda" onPress={() => router.push("/(tabs)/store")} colors={colors} />
-          <QuickAction icon="star" label="Beneficios" onPress={() => router.push("/(tabs)/more")} colors={colors} />
+          <QuickAction icon="star" label="Beneficios" onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "benefits" } })} colors={colors} />
         </View>
 
         <View style={styles.section}>
@@ -231,6 +288,14 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           ))}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Posiciones</Text>
+            <Text style={[styles.seeAll, { color: colors.primary }]}>{leagueData.leagueName}</Text>
+          </View>
+          <StandingsTable colors={colors} clubSlug={club?.slug} />
         </View>
 
         <View style={styles.section}>
@@ -470,5 +535,104 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
     marginTop: 2,
+  },
+});
+
+const standingsStyles = StyleSheet.create({
+  container: {
+    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    overflow: 'hidden',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    marginBottom: 2,
+  },
+  headerPos: {
+    width: 20,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  headerTeamSpacer: {
+    width: 22,
+    marginHorizontal: 6,
+  },
+  headerTeamLabel: {
+    flex: 1,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 10,
+  },
+  headerStat: {
+    width: 22,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  headerStatGd: {
+    width: 28,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  headerPts: {
+    width: 28,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 4,
+    borderLeftWidth: 3,
+    borderRadius: 4,
+    marginVertical: 1,
+  },
+  pos: {
+    width: 20,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  logo: {
+    width: 22,
+    height: 22,
+    marginHorizontal: 6,
+  },
+  teamName: {
+    flex: 1,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+  },
+  stat: {
+    width: 22,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  statGd: {
+    width: 28,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  pts: {
+    width: 28,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  updated: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 10,
+    textAlign: 'center',
+    paddingTop: 8,
+    paddingBottom: 4,
   },
 });
