@@ -32,10 +32,18 @@ export function LoadingScreen(props: LoadingScreenProps) {
   const textColor = club ? theme.colors.textSecondary : LOADING_TEXT;
   const spinnerColor = club ? theme.colors.primary : LOADING_SPINNER;
 
+  const partnerLogoUrl = club?.splashPartnerLogoUrl;
+
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       {logoSource ? (
         <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+      ) : null}
+      {partnerLogoUrl ? (
+        <View style={styles.partnerContainer}>
+          <Text style={[styles.partnerLabel, { color: textColor }]}>Presentado por</Text>
+          <Image source={{ uri: partnerLogoUrl }} style={styles.partnerLogo} resizeMode="contain" />
+        </View>
       ) : null}
       <ActivityIndicator size="large" color={spinnerColor} style={styles.spinner} />
       {message ? (
@@ -57,6 +65,20 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     marginBottom: 24,
+  },
+  partnerContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  partnerLabel: {
+    fontSize: 11,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    opacity: 0.6,
+  },
+  partnerLogo: {
+    width: 120,
+    height: 40,
   },
   spinner: {
     marginBottom: 8,

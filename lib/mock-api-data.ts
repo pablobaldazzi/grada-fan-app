@@ -392,6 +392,9 @@ export function getMockClubWithRelations(slug: string): ClubWithRelations {
     navBarTextColor: cfg.navBarTextColor,
     storeBackgroundColor: cfg.storeBackgroundColor,
     bannerUrl: null,
+    splashPartnerLogoUrl: slug === 'puerto-montt'
+      ? 'https://cecinasllanquihue.cl/wp-content/uploads/2018/09/logocecinasllanquihue_web-3.png'
+      : null,
     font: null,
     events: cfg.matches
       ? cfg.matches.map((m) => ({

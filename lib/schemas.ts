@@ -19,6 +19,7 @@ export const ClubSchema = z.object({
   appBackgroundColor: z.string().nullable().optional(),
   appTextColor: z.string().nullable().optional(),
   bannerUrl: z.string().nullable().optional(),
+  splashPartnerLogoUrl: z.string().nullable().optional(),
   font: z.string().nullable().optional(),
 });
 export type Club = z.infer<typeof ClubSchema>;
