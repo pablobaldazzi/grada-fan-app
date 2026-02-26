@@ -5,6 +5,7 @@ export const ClubSchema = z.object({
   id: z.string(),
   slug: z.string(),
   name: z.string(),
+  nickname: z.string().nullable().optional(),
   logoUrl: z.string().nullable().optional(),
   fullLogoUrl: z.string().nullable().optional(),
   useFullLogo: z.boolean().nullable().optional(),
@@ -33,6 +34,14 @@ export const TicketTypeSchema = z.object({
 });
 export type TicketType = z.infer<typeof TicketTypeSchema>;
 
+export const TeamSummarySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  logoUrl: z.string().nullable().optional(),
+});
+export type TeamSummary = z.infer<typeof TeamSummarySchema>;
+
 export const BackendEventSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -40,6 +49,8 @@ export const BackendEventSchema = z.object({
   datetime: z.string(),
   venue: z.string().nullable().optional(),
   ticketTypes: z.array(TicketTypeSchema).optional().default([]),
+  homeTeam: TeamSummarySchema.nullable().optional(),
+  awayTeam: TeamSummarySchema.nullable().optional(),
 });
 export type BackendEvent = z.infer<typeof BackendEventSchema>;
 

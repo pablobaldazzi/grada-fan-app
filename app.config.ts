@@ -54,8 +54,8 @@ export default {
     extra: {
       clubSlug: club.clubSlug,
       apiBaseUrl,
-      /** Build variant for static assets (icon, favicon). Used by LoadingScreen before club fetches. */
       assetVariant: variant,
+      useMockData: process.env.EXPO_PUBLIC_USE_MOCK_DATA === 'true',
     },
   },
 };

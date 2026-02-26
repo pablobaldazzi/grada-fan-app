@@ -43,3 +43,6 @@ yarn-error.*
 # Windows/WSL metadata
 *:Zone.Identifier
 .local/
+
+# Generated runtime config
+lib/generated-config.json

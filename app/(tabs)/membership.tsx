@@ -6,15 +6,22 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import QRCode from "react-native-qrcode-svg";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
+import { useMembership } from "@/lib/hooks/useMembership";
+import { getUseMockData } from "@/lib/demo-mode";
+import { getClubLogo } from "@/lib/club-logos";
 import Colors from "@/constants/colors";
+
+const demoProfilePic = require("@/assets/images/demo-profile.png");
 
 function displayName(fan: { name?: string | null; firstName?: string | null; lastName?: string | null } | null): string {
   if (!fan) return 'Socio';
@@ -24,9 +31,14 @@ function displayName(fan: { name?: string | null; firstName?: string | null; las
   return [first, last].filter(Boolean).join(' ') || 'Socio';
 }
 
-function MemberCard({ colors }: { colors: Record<string, string> }) {
+function MemberCard({ colors, isLight }: { colors: Record<string, string>; isLight: boolean }) {
   const { fan } = useClerkAuth();
+  const { club } = useClub();
+  const { tierConfig } = useMembership();
   const name = displayName(fan);
+  const isDemo = getUseMockData();
+  const memberId = fan?.id ? fan.id.slice(-8).toUpperCase() : 'SOCIO001';
+  const qrValue = `grada://socio/${club?.slug ?? 'club'}/${memberId}`;
 
   return (
     <Pressable
@@ -36,18 +48,40 @@ function MemberCard({ colors }: { colors: Record<string, string> }) {
       }}
       style={({ pressed }) => [{ opacity: pressed ? 0.96 : 1 }]}
     >
-      <LinearGradient colors={['#1a1a1a', '#111111', '#0a0a0a']} style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={[styles.cardLogo, { backgroundColor: colors.primary + '15' }]}>
-            <MaterialCommunityIcons name="shield" size={28} color={colors.primary} />
-          </View>
-        </View>
+      <LinearGradient colors={isLight ? tierConfig.lightGradientColors : tierConfig.gradientColors} style={[styles.card, { borderColor: colors.cardBorder }]}>
         <View style={styles.cardBody}>
-          <Text style={[styles.roleLabel, { color: colors.textTertiary }]}>Socio</Text>
-          <Text style={[styles.memberName, { color: colors.text }]}>{name}</Text>
-          {fan?.email ? <Text style={[styles.memberNumber, { color: colors.textSecondary }]}>{fan.email}</Text> : null}
+          <View style={styles.cardBodyLeft}>
+            <View style={[styles.tierBadge, { backgroundColor: tierConfig.color + '20' }]}>
+              <MaterialCommunityIcons
+                name={tierConfig.icon as any}
+                size={14}
+                color={tierConfig.color}
+              />
+              <Text style={[styles.tierText, { color: tierConfig.color }]}>
+                {tierConfig.name}
+              </Text>
+            </View>
+            <Text style={[styles.memberName, { color: isLight ? '#1A1A1A' : '#FFFFFF' }]}>{name}</Text>
+            {fan?.email ? <Text style={[styles.memberNumber, { color: isLight ? '#555555' : '#A0A0A0' }]}>{fan.email}</Text> : null}
+          </View>
+          {isDemo ? (
+            <Image source={demoProfilePic} style={styles.profilePic} />
+          ) : (
+            <View style={[styles.profilePicPlaceholder, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="person" size={30} color={colors.primary} />
+            </View>
+          )}
         </View>
-        <View style={styles.cardAccentLine} />
+        <View style={[styles.qrSection, { borderTopColor: isLight ? '#E0E0E0' : '#222222' }]}>
+          <QRCode
+            value={qrValue}
+            size={80}
+            color={isLight ? '#1A1A1A' : '#FFFFFF'}
+            backgroundColor="transparent"
+          />
+          <Text style={[styles.memberIdText, { color: isLight ? '#888888' : colors.textTertiary }]}>ID: {memberId}</Text>
+        </View>
+        <View style={[styles.cardAccentLine, { backgroundColor: tierConfig.color }]} />
       </LinearGradient>
     </Pressable>
   );
@@ -67,12 +101,51 @@ function InfoRow({ icon, label, value, colors }: { icon: any; label: string; val
   );
 }
 
+function PlanBanner({ colors }: { colors: Record<string, string> }) {
+  const { tier, tierConfig } = useMembership();
+
+  const isGold = tier === 'gold';
+  const bannerLabel = isGold ? 'Plan Gold activo' : 'Mejora tu plan';
+  const bannerSub = isGold
+    ? 'Toca para ver o cambiar tu plan'
+    : 'Accede a beneficios exclusivos';
+  const accentColor = isGold ? tierConfig.color : '#FFD700';
+  const iconName = isGold ? 'crown' : 'arrow-up-circle';
+
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push("/upgrade-membership");
+      }}
+      style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
+    >
+      <LinearGradient
+        colors={[accentColor + '20', accentColor + '08']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.upgradeBanner, { borderColor: accentColor + '25' }]}
+      >
+        <View style={styles.upgradeBannerLeft}>
+          <MaterialCommunityIcons name={iconName as any} size={22} color={accentColor} />
+          <View>
+            <Text style={[styles.upgradeBannerTitle, { color: colors.text }]}>{bannerLabel}</Text>
+            <Text style={[styles.upgradeBannerSub, { color: colors.textSecondary }]}>{bannerSub}</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
 export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const { club, theme } = useClub();
-  const { fan } = useClerkAuth();
+  const { club, theme, themeMode } = useClub();
+  const { fan, profileStatus } = useClerkAuth();
   const colors = theme.colors;
+  const isLight = themeMode === 'light';
   const name = displayName(fan);
 
   return (
@@ -83,13 +156,17 @@ export default function MembershipScreen() {
           { paddingTop: insets.top + webTopInset + 16, paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
-        // We already apply safe-area top padding manually; avoid double inset on iOS
         contentInsetAdjustmentBehavior="never"
       >
-        <Text style={[styles.title, { color: colors.text }]}>{club?.name ?? 'Club'} ID</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Tu carnet digital de socio</Text>
+        <View style={styles.titleRow}>
+          <Image source={getClubLogo(club?.slug)} style={styles.titleClubLogo} resizeMode="contain" />
+          <View>
+            <Text style={[styles.title, { color: colors.text }]}>{club?.nickname ?? club?.name ?? 'Club'} ID</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Tu carnet digital de socio</Text>
+          </View>
+        </View>
 
-        <MemberCard colors={colors} />
+        <MemberCard colors={colors} isLight={isLight} />
 
         <View style={[styles.presentNotice, { backgroundColor: colors.primary + '10' }]}>
           <Ionicons name="information-circle" size={18} color={colors.primary} />
@@ -109,11 +186,14 @@ export default function MembershipScreen() {
           <Text style={[styles.fullscreenBtnText, { color: colors.text }]}>Ver pantalla completa</Text>
         </Pressable>
 
+        <PlanBanner colors={colors} />
+
         <View style={styles.infoSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Informacion del socio</Text>
           <InfoRow icon="person" label="Nombre" value={name} colors={colors} />
           {fan?.email ? <InfoRow icon="mail" label="Email" value={fan.email} colors={colors} /> : null}
           {fan?.phone ? <InfoRow icon="call" label="Telefono" value={fan.phone} colors={colors} /> : null}
+          {profileStatus?.nationalId ? <InfoRow icon="id-card" label="RUT" value={profileStatus.nationalId} colors={colors} /> : null}
         </View>
       </ScrollView>
     </View>
@@ -123,17 +203,26 @@ export default function MembershipScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scrollContent: { paddingHorizontal: 16 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  titleClubLogo: {
+    width: 64,
+    height: 64,
+  },
   title: {
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
     color: Colors.text,
-    marginBottom: 4,
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: Colors.textSecondary,
-    marginBottom: 20,
+    marginTop: 2,
   },
   card: {
     borderRadius: 16,
@@ -142,26 +231,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
     overflow: 'hidden',
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+  cardBodyLeft: {
+    flex: 1,
+    gap: 2,
   },
-  cardLogo: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardHeaderRight: { flexDirection: 'row', gap: 8 },
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     gap: 4,
-    backgroundColor: Colors.gold + '20',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -169,16 +247,36 @@ const styles = StyleSheet.create({
   tierText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 11,
-    color: Colors.gold,
   },
-  cardBody: { marginBottom: 20 },
-  roleLabel: {
+  profilePic: {
+    width: 64,
+    height: 72,
+    borderRadius: 10,
+  },
+  profilePicPlaceholder: {
+    width: 64,
+    height: 72,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrSection: {
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#222222',
+  },
+  memberIdText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 11,
-    color: Colors.textTertiary,
-    textTransform: 'uppercase',
     letterSpacing: 2,
-    marginBottom: 4,
+    marginTop: 8,
+  },
+  cardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 16,
   },
   memberName: {
     fontFamily: 'Inter_700Bold',
@@ -191,65 +289,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
   },
-  cardDetails: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-  },
-  detailItem: { flex: 1 },
-  detailLabel: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 10,
-    color: Colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 12,
-    color: Colors.text,
-  },
-  cardBarcode: {
-    alignItems: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-  },
-  barcodeArea: {
-    flexDirection: 'row',
-    gap: 2,
-    height: 50,
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  barcodeLine: {
-    height: 40,
-    backgroundColor: Colors.text,
-    borderRadius: 0.5,
-  },
-  barcodeNumber: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 11,
-    color: Colors.textTertiary,
-    letterSpacing: 2,
-  },
   cardAccentLine: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     height: 3,
-    backgroundColor: Colors.primary,
   },
   presentNotice: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.primary + '10',
     borderRadius: 12,
     padding: 14,
     marginTop: 16,
@@ -275,6 +325,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
   },
+  upgradeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#FFD70025',
+  },
+  upgradeBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  upgradeBannerTitle: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
+    color: Colors.text,
+  },
+  upgradeBannerSub: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
   infoSection: { marginTop: 24 },
   sectionTitle: {
     fontFamily: 'Inter_700Bold',
@@ -295,7 +372,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: Colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },

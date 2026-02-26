@@ -20,6 +20,7 @@ const Colors = {
   info: '#3498DB',
   gold: '#FFD700',
   silver: '#C0C0C0',
+  bronze: '#CD7F32',
   overlay: 'rgba(0, 0, 0, 0.7)',
   divider: '#222222',
   skeleton: '#1E1E1E',

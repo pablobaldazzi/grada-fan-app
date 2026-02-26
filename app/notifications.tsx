@@ -13,8 +13,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Colors from "@/constants/colors";
+import { useClub } from "@/lib/contexts/ClubContext";
 import { fetchNotifications, markNotificationRead } from "@/lib/api";
+
 import { timeAgo } from "@/lib/mock-data";
 import type { AppNotification } from "@/lib/schemas";
 import { getDisplayType } from "@/lib/notification-utils";
@@ -22,16 +23,18 @@ import { getDisplayType } from "@/lib/notification-utils";
 function NotificationItem({
   notification,
   onPress,
+  colors,
 }: {
   notification: AppNotification;
   onPress: () => void;
+  colors: Record<string, string>;
 }) {
   const read = !!notification.readAt;
   const typeColors: Record<string, string> = {
-    ticket: Colors.primary,
-    promo: Colors.warning,
-    offer: Colors.success,
-    club: Colors.info,
+    ticket: colors.primary,
+    promo: colors.warning,
+    offer: colors.success,
+    club: colors.info,
   };
   const typeLabels: Record<string, string> = {
     ticket: "Entradas",
@@ -40,7 +43,7 @@ function NotificationItem({
     club: "Club",
   };
   const displayType = getDisplayType(notification.type);
-  const color = typeColors[displayType] || Colors.info;
+  const color = typeColors[displayType] || colors.info;
   const timeStr = notification.createdAt ? timeAgo(notification.createdAt) : "";
 
   return (
@@ -51,7 +54,8 @@ function NotificationItem({
       }}
       style={({ pressed }) => [
         styles.notifCard,
-        !read && styles.notifUnread,
+        { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+        !read && { borderColor: colors.primary + "55" },
         { opacity: pressed ? 0.9 : 1 },
       ]}
     >
@@ -63,14 +67,14 @@ function NotificationItem({
               {typeLabels[displayType] ?? "Club"}
             </Text>
           </View>
-          <Text style={styles.notifTime}>{timeStr}</Text>
+          <Text style={[styles.notifTime, { color: colors.textTertiary }]}>{timeStr}</Text>
         </View>
-        <Text style={styles.notifTitle}>{notification.title}</Text>
-        <Text style={styles.notifBody} numberOfLines={3}>
+        <Text style={[styles.notifTitle, { color: colors.text }]}>{notification.title}</Text>
+        <Text style={[styles.notifBody, { color: colors.textSecondary }]} numberOfLines={3}>
           {notification.body ?? ""}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
     </Pressable>
   );
 }
@@ -79,6 +83,8 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const queryClient = useQueryClient();
+  const { theme } = useClub();
+  const colors = theme.colors;
 
   const { data: notifData, isRefetching, refetch } = useQuery({
     queryKey: ["notifications"],
@@ -87,7 +93,6 @@ export default function NotificationsScreen() {
 
   const markReadMutation = useMutation({
     mutationFn: markNotificationRead,
-    // Avoid full refetch (can cause iOS list "jump" / scroll bounce)
     onSuccess: (updated) => {
       queryClient.setQueryData(["notifications"], (prev: any) => {
         if (!prev?.items) return prev;
@@ -105,12 +110,10 @@ export default function NotificationsScreen() {
     const item = notifData?.items.find((n) => n.id === id);
     if (!item) return;
 
-    // Mark read (but don't refetch / jump)
     if (!item.readAt) {
       markReadMutation.mutate(id);
     }
 
-    // Use data payload for deep linking when available
     const data = item.data as { kind?: string; eventId?: string; refId?: string } | undefined;
     if (data?.kind === "new-match" && data.eventId) {
       router.push({ pathname: "/match-tickets", params: { matchId: data.eventId } });
@@ -125,7 +128,6 @@ export default function NotificationsScreen() {
       return;
     }
 
-    // Fallback to type-based routing
     const displayType = getDisplayType(item.type);
     if (displayType === "ticket" || displayType === "club") {
       router.push("/(tabs)/tickets");
@@ -140,27 +142,26 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
           { paddingTop: insets.top + webTopInset + 16, paddingBottom: insets.bottom + 24 },
         ]}
         showsVerticalScrollIndicator={false}
-        // We already apply safe-area top padding manually; avoid double inset on iOS
         contentInsetAdjustmentBehavior="never"
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={Colors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={colors.primary} />
         }
       >
         <View style={styles.header}>
           <Pressable
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder, opacity: pressed ? 0.7 : 1 }]}
           >
-            <Ionicons name="chevron-back" size={22} color={Colors.text} />
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
           </Pressable>
-          <Text style={styles.title}>Avisos</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Avisos</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -169,12 +170,13 @@ export default function NotificationsScreen() {
             key={notif.id}
             notification={notif}
             onPress={() => handleNotificationPress(notif.id)}
+            colors={colors}
           />
         ))}
 
         {notifications.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No hay avisos por ahora.</Text>
+          <View style={[styles.empty, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No hay avisos por ahora.</Text>
           </View>
         ) : null}
       </ScrollView>
@@ -183,7 +185,7 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   scrollContent: { paddingHorizontal: 16 },
   header: {
     flexDirection: "row",
@@ -195,30 +197,22 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
   },
   title: {
     fontFamily: "Inter_700Bold",
     fontSize: 20,
-    color: Colors.text,
   },
   notifCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     gap: 12,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
-  },
-  notifUnread: {
-    borderColor: Colors.primary + "55",
   },
   notifDot: {
     width: 10,
@@ -245,31 +239,25 @@ const styles = StyleSheet.create({
   notifTime: {
     fontFamily: "Inter_400Regular",
     fontSize: 11,
-    color: Colors.textTertiary,
   },
   notifTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 14,
-    color: Colors.text,
   },
   notifBody: {
     fontFamily: "Inter_400Regular",
     fontSize: 12,
-    color: Colors.textSecondary,
     marginTop: 4,
   },
   empty: {
     marginTop: 20,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
     alignItems: "center",
   },
   emptyText: {
     fontFamily: "Inter_500Medium",
     fontSize: 13,
-    color: Colors.textSecondary,
   },
 });

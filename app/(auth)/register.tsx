@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Image,
+  ImageSourcePropType,
   Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -14,14 +15,24 @@ import * as Linking from 'expo-linking';
 import { useSignUp } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useClub } from '@/lib/contexts/ClubContext';
+import { config } from '@/lib/config';
+import { getUseMockData } from '@/lib/demo-mode';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+
+const CLUB_LOGOS: Record<string, ImageSourcePropType> = {
+  rangers: require('@/assets/clubs/rangers/splash-icon.png'),
+  'deportes-concepcion': require('@/assets/clubs/deportes-concepcion/splash-icon.png'),
+  palestino: require('@/assets/clubs/palestino/splash-icon.png'),
+  'puerto-montt': require('@/assets/clubs/puerto-montt/splash-icon.png'),
+};
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function RegisterScreen() {
   const { club, theme } = useClub();
   const { signUp, setActive, isLoaded } = useSignUp();
+  const isDemo = getUseMockData();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -33,7 +44,6 @@ export default function RegisterScreen() {
   const [error, setError] = useState('');
 
   const handleRegister = async () => {
-    if (!isLoaded || !signUp) return;
     if (!email.trim() || !password) {
       setError('Ingresa tu email y contraseña.');
       return;
@@ -43,6 +53,16 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (isDemo) {
+      setLoading(true);
+      setError('');
+      await new Promise((r) => setTimeout(r, 300));
+      setLoading(false);
+      router.replace('/(tabs)');
+      return;
+    }
+
+    if (!isLoaded || !signUp) return;
     setLoading(true);
     setError('');
     try {
@@ -122,6 +142,8 @@ export default function RegisterScreen() {
   }, [isLoaded, signUp, setActive]);
 
   const logoUri = club?.useFullLogo ? club?.fullLogoUrl : club?.logoUrl;
+  const bundledLogo = CLUB_LOGOS[config.assetVariant] ?? CLUB_LOGOS.rangers;
+  const logoSource = logoUri ? { uri: logoUri } : bundledLogo;
 
   return (
     <KeyboardAvoidingView
@@ -130,13 +152,7 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.logoContainer}>
-          {logoUri ? (
-            <Image source={{ uri: logoUri }} style={styles.logo} resizeMode="contain" />
-          ) : (
-            <View style={[styles.logoPlaceholder, { backgroundColor: theme.colors.primary }]}>
-              <Text style={styles.logoPlaceholderText}>{club?.name?.charAt(0) ?? 'C'}</Text>
-            </View>
-          )}
+          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
         </View>
 
         <Text style={[styles.title, { color: theme.colors.text }]}>
@@ -198,13 +214,13 @@ export default function RegisterScreen() {
             <Button title="Crear cuenta" onPress={handleRegister} loading={loading} style={{ marginTop: 8 }} />
 
             <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+              <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
               <Text style={[styles.dividerText, { color: theme.colors.textSecondary }]}>o</Text>
-              <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+              <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
             </View>
 
             <Pressable
-              style={[styles.googleButton, { borderColor: theme.colors.border }]}
+              style={[styles.googleButton, { borderColor: theme.colors.divider }]}
               onPress={handleGoogleSignUp}
               disabled={loading}
             >
@@ -229,9 +245,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   logoContainer: { alignItems: 'center', marginBottom: 24 },
-  logo: { width: 64, height: 64, borderRadius: 12 },
-  logoPlaceholder: { width: 64, height: 64, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  logoPlaceholderText: { color: '#fff', fontSize: 28, fontWeight: '700' },
+  logo: { width: 80, height: 80 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   subtitle: { fontSize: 15, marginBottom: 16, lineHeight: 22 },
   errorBanner: { padding: 12, borderRadius: 10, marginBottom: 16 },

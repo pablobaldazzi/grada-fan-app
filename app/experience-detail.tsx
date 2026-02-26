@@ -13,13 +13,16 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
-import { MOCK_EXPERIENCES, formatCLP, formatDate } from "@/lib/mock-data";
+import { getMockExperiences, formatCLP, formatDate } from "@/lib/mock-data";
+import { useClub } from "@/lib/contexts/ClubContext";
 
 export default function ExperienceDetailScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { experienceId } = useLocalSearchParams<{ experienceId: string }>();
-  const exp = MOCK_EXPERIENCES.find(e => e.id === experienceId) || MOCK_EXPERIENCES[0];
+  const { club } = useClub();
+  const experiences = getMockExperiences(club?.slug ?? 'rangers');
+  const exp = experiences.find(e => e.id === experienceId) || experiences[0];
   const spotsLow = exp.spotsRemaining <= 5;
 
   const handleReserve = () => {

@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -13,8 +14,16 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useClub } from "@/lib/contexts/ClubContext";
+import { getClubLogo, parseMatchTeams, getTeamSlug } from "@/lib/club-logos";
 import { formatCLP, formatDate, formatTime } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
+import { TIER_CONFIG, type MembershipTier } from "@/lib/membership";
+
+const TIER_DISCOUNT: Record<MembershipTier, number> = { gold: 0.20, silver: 0.10, fan: 0 };
+
+function applyDiscount(price: number, tier: MembershipTier): number {
+  return Math.round(price * (1 - TIER_DISCOUNT[tier]));
+}
 
 const SEATS_PER_ROW = 12;
 const NUM_ROWS = 8;
@@ -121,9 +130,25 @@ export default function MatchTicketsScreen() {
       >
         <View style={[styles.matchSummary, { backgroundColor: colors.surface }]}>
           <View style={styles.matchSummaryTeams}>
-            <MaterialCommunityIcons name="shield" size={24} color={colors.primary} />
-            <Text style={[styles.matchSummaryText, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
-            <MaterialCommunityIcons name="shield-outline" size={24} color={colors.textSecondary} />
+            {(() => {
+              const hasApiTeams = !!(event.homeTeam || event.awayTeam);
+              const parsed = !hasApiTeams ? parseMatchTeams(event.name) : null;
+              const homeLogoUrl = event.homeTeam?.logoUrl;
+              const awayLogoUrl = event.awayTeam?.logoUrl;
+              const homeSlug = event.homeTeam?.slug ?? (parsed ? getTeamSlug(parsed.home) : club?.slug);
+              const awaySlug = event.awayTeam?.slug ?? (parsed ? getTeamSlug(parsed.away) : club?.slug);
+              return (
+                <>
+                  {homeLogoUrl
+                    ? <Image source={{ uri: homeLogoUrl }} style={styles.matchSummaryLogo} resizeMode="contain" />
+                    : <Image source={getClubLogo(homeSlug)} style={styles.matchSummaryLogo} resizeMode="contain" />}
+                  <Text style={[styles.matchSummaryText, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
+                  {awayLogoUrl
+                    ? <Image source={{ uri: awayLogoUrl }} style={styles.matchSummaryLogo} resizeMode="contain" />
+                    : <Image source={getClubLogo(awaySlug)} style={styles.matchSummaryLogo} resizeMode="contain" />}
+                </>
+              );
+            })()}
           </View>
           <Text style={[styles.matchSummaryMeta, { color: colors.textSecondary }]}>
             {formatDate(event.datetime)} - {formatTime(event.datetime)} - {event.venue ?? ''}
@@ -149,9 +174,20 @@ export default function MatchTicketsScreen() {
                 <View style={styles.typeInfo}>
                   <Text style={[styles.typeName, { color: colors.text }]}>{tt.name}</Text>
                   <Text style={[styles.typeAvail, { color: colors.textSecondary }]}>{(tt.capacity ?? 0) - (tt.sold ?? 0)} disponibles</Text>
+                  <View style={styles.typeTierPrices}>
+                    {(['gold', 'silver', 'fan'] as const).map((tier) => {
+                      const discounted = applyDiscount(tt.price, tier);
+                      const cfg = TIER_CONFIG[tier];
+                      return (
+                        <View key={tier} style={[styles.typeTierItem, { backgroundColor: cfg.color + '12' }]}>
+                          <Text style={[styles.typeTierLabel, { color: cfg.color }]}>{cfg.name}</Text>
+                          <Text style={[styles.typeTierValue, { color: cfg.color }]}>{formatCLP(discounted)}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
                 </View>
                 <View style={styles.typeRight}>
-                  <Text style={[styles.typePrice, { color: colors.primary }]}>{formatCLP(tt.price)}</Text>
                   <View style={[
                     styles.typeRadio,
                     { borderColor: colors.divider },
@@ -314,6 +350,10 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 6,
   },
+  matchSummaryLogo: {
+    width: 24,
+    height: 24,
+  },
   matchSummaryText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
@@ -343,7 +383,7 @@ const styles = StyleSheet.create({
   typeCardSelected: {
     borderColor: Colors.primary,
   },
-  typeInfo: { flex: 1 },
+  typeInfo: { flex: 1, gap: 4 },
   typeName: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
@@ -355,12 +395,29 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  typeRight: { alignItems: 'flex-end', gap: 8 },
-  typePrice: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 16,
-    color: Colors.primary,
+  typeTierPrices: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
   },
+  typeTierItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  typeTierLabel: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 9,
+    textTransform: 'uppercase',
+  },
+  typeTierValue: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+  },
+  typeRight: { alignItems: 'flex-end', justifyContent: 'center' },
   typeRadio: {
     width: 20,
     height: 20,

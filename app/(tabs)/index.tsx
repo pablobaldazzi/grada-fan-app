@@ -6,26 +6,31 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
-import { defaultTheme } from "@/lib/theme";
+import { darkenHex } from "@/lib/theme";
+import { getClubLogo, parseMatchTeams, getTeamSlug } from "@/lib/club-logos";
 import { fetchNotifications } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/format";
+import { getMockNews, type NewsArticle } from "@/lib/mock-data";
 import type { BackendEvent } from "@/lib/schemas";
 
-const Colors = defaultTheme.colors;
-
-function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<string, string> }) {
+function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEvent; colors: Record<string, string>; clubSlug?: string; isLight?: boolean }) {
   const eventDate = new Date(event.datetime);
   const now = new Date();
   const diffDays = Math.ceil((eventDate.getTime() - now.getTime()) / 86400000);
+  const teams = parseMatchTeams(event.name);
+  const homeSlug = teams ? getTeamSlug(teams.home) : clubSlug;
+  const awaySlug = teams ? getTeamSlug(teams.away) : undefined;
+  const gradientEnd = darkenHex(colors.primary, isLight ? 0.4 : 0.85);
 
   return (
     <Pressable
@@ -36,7 +41,7 @@ function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<
       style={({ pressed }) => [styles.matchCard, { opacity: pressed ? 0.95 : 1 }]}
     >
       <LinearGradient
-        colors={[colors.primary, colors.primaryDark, '#1a0505']}
+        colors={[colors.primary, colors.primaryDark, gradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.matchGradient}
@@ -45,12 +50,19 @@ function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<
         <View style={styles.matchTeams}>
           <View style={styles.teamCol}>
             <View style={styles.teamBadge}>
-              <MaterialCommunityIcons name="shield" size={40} color={colors.text} />
+              <Image source={getClubLogo(homeSlug)} style={styles.teamBadgeImg} resizeMode="contain" />
             </View>
-            <Text style={[styles.teamName, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
+            <Text style={[styles.teamName, { color: '#FFFFFF' }]} numberOfLines={2}>{teams?.home ?? event.name}</Text>
           </View>
           <View style={styles.vsCol}>
+            <Text style={styles.vsText}>vs</Text>
             <Text style={styles.matchTime}>{formatTime(event.datetime)}</Text>
+          </View>
+          <View style={styles.teamCol}>
+            <View style={styles.teamBadge}>
+              <Image source={getClubLogo(awaySlug)} style={styles.teamBadgeImg} resizeMode="contain" />
+            </View>
+            <Text style={[styles.teamName, { color: '#FFFFFF' }]} numberOfLines={2}>{teams?.away ?? ''}</Text>
           </View>
         </View>
         <View style={styles.matchMeta}>
@@ -66,12 +78,12 @@ function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<
           ) : null}
         </View>
         <View style={styles.matchCta}>
-          <Text style={[styles.matchCtaText, { color: colors.text }]}>Comprar Entradas</Text>
-          <Ionicons name="arrow-forward" size={16} color={colors.text} />
+          <Text style={[styles.matchCtaText, { color: '#FFFFFF' }]}>Comprar Entradas</Text>
+          <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
         </View>
         {diffDays > 0 && (
           <View style={styles.countdownBadge}>
-            <Text style={[styles.countdownText, { color: colors.text }]}>{diffDays} dias</Text>
+            <Text style={[styles.countdownText, { color: '#FFFFFF' }]}>{diffDays} dias</Text>
           </View>
         )}
       </LinearGradient>
@@ -79,26 +91,34 @@ function NextMatchCard({ event, colors }: { event: BackendEvent; colors: Record<
   );
 }
 
-function AnnouncementCard({ title, body, type, colors }: { title: string; body: string; type: string; colors: Record<string, string> }) {
-  const iconMap: Record<string, { name: 'ticket' | 'megaphone' | 'pricetag' | 'football'; color: string }> = {
-    ticket: { name: 'ticket', color: colors.primary },
-    promo: { name: 'megaphone', color: colors.warning },
-    offer: { name: 'pricetag', color: colors.success },
-    club: { name: 'football', color: colors.info },
-  };
-  const icon = iconMap[type] || iconMap.club;
+const NEWS_ICON_MAP: Record<string, string> = {
+  resultado: 'football',
+  fichaje: 'person-add',
+  institucional: 'megaphone',
+  cantera: 'school',
+  comunidad: 'people',
+};
+
+function NewsPreviewCard({ article, colors }: { article: NewsArticle; colors: Record<string, string> }) {
+  const icon = NEWS_ICON_MAP[article.category] ?? 'newspaper';
 
   return (
-    <View style={[styles.announcementCard, { backgroundColor: colors.surface }]}>
-      <View style={[styles.announcementIcon, { backgroundColor: icon.color + '20' }]}>
-        <Ionicons name={icon.name} size={20} color={icon.color} />
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push({ pathname: "/news-detail", params: { newsId: article.id } });
+      }}
+      style={({ pressed }) => [styles.announcementCard, { backgroundColor: colors.surface, opacity: pressed ? 0.85 : 1 }]}
+    >
+      <View style={[styles.announcementIcon, { backgroundColor: colors.primary + '20' }]}>
+        <Ionicons name={icon as any} size={20} color={colors.primary} />
       </View>
       <View style={styles.announcementContent}>
-        <Text style={[styles.announcementTitle, { color: colors.text }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.announcementBody, { color: colors.textSecondary }]} numberOfLines={2}>{body ?? ''}</Text>
+        <Text style={[styles.announcementTitle, { color: colors.text }]} numberOfLines={1}>{article.title}</Text>
+        <Text style={[styles.announcementBody, { color: colors.textSecondary }]} numberOfLines={2}>{article.summary}</Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-    </View>
+    </Pressable>
   );
 }
 
@@ -122,7 +142,7 @@ function QuickAction({ icon, label, onPress, colors }: { icon: any; label: strin
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const { club, theme } = useClub();
+  const { club, theme, themeMode } = useClub();
   const { isSignedIn } = useClerkAuth();
   const colors = theme.colors;
 
@@ -131,9 +151,9 @@ export default function HomeScreen() {
     queryFn: () => fetchNotifications({ take: 10 }),
     enabled: isSignedIn,
   });
-  const notifications = notifData?.items ?? [];
   const unreadCount = notifData?.unreadCount ?? 0;
-  const recentNotifs = notifications.slice(0, 3);
+
+  const recentNews = getMockNews().slice(0, 3);
 
   const firstEvent = club?.events?.[0];
   const moreEvents = club?.events?.slice(1, 4) ?? [];
@@ -162,7 +182,7 @@ export default function HomeScreen() {
               <Ionicons name="notifications-outline" size={22} color={colors.text} />
               {unreadCount > 0 && (
                 <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                  <Text style={[styles.badgeText, { color: colors.text }]}>{unreadCount}</Text>
+                  <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>{unreadCount}</Text>
                 </View>
               )}
             </Pressable>
@@ -175,7 +195,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {firstEvent ? <NextMatchCard event={firstEvent} colors={colors} /> : null}
+        {firstEvent ? <NextMatchCard event={firstEvent} colors={colors} clubSlug={club?.slug} isLight={themeMode === 'light'} /> : null}
 
         <View style={styles.quickActions}>
           <QuickAction icon="card" label="Mi Carnet" onPress={() => router.push("/(tabs)/membership")} colors={colors} />
@@ -216,9 +236,12 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Noticias</Text>
+            <Pressable onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "noticias" } })}>
+              <Text style={[styles.seeAll, { color: colors.primary }]}>Ver todos</Text>
+            </Pressable>
           </View>
-          {recentNotifs.map((n) => (
-            <AnnouncementCard key={n.id} title={n.title} body={n.body ?? ''} type={n.type ?? 'club'} colors={colors} />
+          {recentNews.map((article) => (
+            <NewsPreviewCard key={article.id} article={article} colors={colors} />
           ))}
         </View>
       </ScrollView>
@@ -249,7 +272,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -257,7 +279,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: Colors.primary,
     borderRadius: 10,
     minWidth: 18,
     height: 18,
@@ -268,7 +289,6 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 10,
-    color: Colors.text,
   },
   matchCard: { marginBottom: 20, borderRadius: 16, overflow: 'hidden' },
   matchGradient: { padding: 20, borderRadius: 16 },
@@ -294,6 +314,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+  },
+  teamBadgeImg: {
+    width: 40,
+    height: 40,
   },
   teamName: {
     fontFamily: 'Inter_600SemiBold',
@@ -357,7 +381,6 @@ const styles = StyleSheet.create({
   quickAction: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderRadius: 14,
     paddingVertical: 14,
     gap: 6,
@@ -366,7 +389,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: Colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -399,7 +421,6 @@ const styles = StyleSheet.create({
   },
   miniMatchDate: {
     alignItems: 'center',
-    backgroundColor: Colors.primary + '15',
     borderRadius: 10,
     width: 48,
     height: 48,
@@ -408,20 +429,17 @@ const styles = StyleSheet.create({
   miniMatchDay: {
     fontFamily: 'Inter_700Bold',
     fontSize: 18,
-    color: Colors.primary,
     lineHeight: 22,
   },
   miniMatchMonth: {
     fontFamily: 'Inter_500Medium',
     fontSize: 10,
-    color: Colors.primary,
     textTransform: 'uppercase',
   },
   miniMatchInfo: { flex: 1 },
   miniMatchTeams: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: Colors.text,
   },
   miniMatchVenue: {
     fontFamily: 'Inter_400Regular',

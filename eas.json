@@ -64,6 +64,20 @@
         "APP_VARIANT": "palestino"
       },
       "android": {}
+    },
+    "puerto_montt_ios": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "puerto-montt"
+      },
+      "ios": {}
+    },
+    "puerto_montt_android": {
+      "extends": "production",
+      "env": {
+        "APP_VARIANT": "puerto-montt"
+      },
+      "android": {}
     }
   },
   "submit": {

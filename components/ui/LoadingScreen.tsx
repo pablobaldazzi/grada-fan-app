@@ -5,9 +5,10 @@ import { config } from '@/lib/config';
 
 /** Club logos for loading screen - used before club data is fetched. */
 const CLUB_LOGOS: Record<string, ImageSourcePropType> = {
-  rangers: require('@/assets/clubs/rangers/icon.png'),
-  'deportes-concepcion': require('@/assets/clubs/deportes-concepcion/icon.png'),
-  palestino: require('@/assets/clubs/palestino/icon.png'),
+  rangers: require('@/assets/clubs/rangers/splash-icon.png'),
+  'deportes-concepcion': require('@/assets/clubs/deportes-concepcion/splash-icon.png'),
+  palestino: require('@/assets/clubs/palestino/splash-icon.png'),
+  'puerto-montt': require('@/assets/clubs/puerto-montt/splash-icon.png'),
 };
 
 const LOADING_BG = '#0A0A0A';
@@ -53,8 +54,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     marginBottom: 24,
   },
   spinner: {

@@ -9,6 +9,7 @@ exports.CLUB_SLUG_TO_VARIANT = {
   rangers: 'rangers',
   'deportes-concepcion': 'deportes-concepcion',
   palestino: 'palestino',
+  'puerto-montt': 'puerto-montt',
 };
 
 exports.CLUB_CONFIGS = {
@@ -35,5 +36,13 @@ exports.CLUB_CONFIGS = {
     bundleId: 'com.grada.palestino',
     package: 'com.grada.palestino',
     clubSlug: 'palestino',
+  },
+  'puerto-montt': {
+    name: 'Deportes Puerto Montt App',
+    slug: 'puerto-montt-app',
+    scheme: 'puertomonttapp',
+    bundleId: 'com.grada.puertomontt',
+    package: 'com.grada.puertomontt',
+    clubSlug: 'puerto-montt',
   },
 };

@@ -8,27 +8,54 @@ import {
   Platform,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import QRCode from "react-native-qrcode-svg";
 import { useQuery } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
+import { getClubLogo, parseMatchTeams, getTeamSlug } from "@/lib/club-logos";
 import { fetchOrders } from "@/lib/api";
 import { formatDate, formatTime, formatCLP } from "@/lib/format";
 import type { BackendEvent, Ticket } from "@/lib/schemas";
+import { TIER_CONFIG, type MembershipTier } from "@/lib/membership";
 
 interface TicketWithOrderId extends Ticket {
   _orderId: string;
 }
 
-function EventCard({ event, colors }: { event: BackendEvent; colors: Record<string, string> }) {
+function TeamLogo({ logoUrl, slug, colors }: { logoUrl?: string | null; slug?: string; colors: Record<string, string> }) {
+  if (logoUrl) {
+    return <Image source={{ uri: logoUrl }} style={styles.matchTeamLogoImg} resizeMode="contain" />;
+  }
+  return <Image source={getClubLogo(slug)} style={styles.matchTeamLogoImg} resizeMode="contain" />;
+}
+
+const TIER_DISCOUNT: Record<MembershipTier, number> = { gold: 0.20, silver: 0.10, fan: 0 };
+
+function applyDiscount(price: number, tier: MembershipTier): number {
+  return Math.round(price * (1 - TIER_DISCOUNT[tier]));
+}
+
+function EventCard({ event, colors, clubSlug }: { event: BackendEvent; colors: Record<string, string>; clubSlug?: string }) {
   const minPrice = event.ticketTypes?.length
     ? Math.min(...event.ticketTypes.map((tt) => tt.price))
     : 0;
+
+  const hasApiTeams = !!(event.homeTeam || event.awayTeam);
+  const parsed = !hasApiTeams ? parseMatchTeams(event.name) : null;
+
+  const homeName = event.homeTeam?.name ?? parsed?.home ?? event.name;
+  const awayName = event.awayTeam?.name ?? parsed?.away ?? '';
+  const homeLogoUrl = event.homeTeam?.logoUrl;
+  const awayLogoUrl = event.awayTeam?.logoUrl;
+  const homeSlug = event.homeTeam?.slug ?? (parsed ? getTeamSlug(parsed.home) : clubSlug);
+  const awaySlug = event.awayTeam?.slug ?? (parsed ? getTeamSlug(parsed.away) : undefined);
+
   return (
     <Pressable
       onPress={() => {
@@ -40,9 +67,16 @@ function EventCard({ event, colors }: { event: BackendEvent; colors: Record<stri
       <View style={styles.matchTeamsRow}>
         <View style={styles.matchTeamCol}>
           <View style={[styles.matchTeamIcon, { backgroundColor: colors.primary + '20' }]}>
-            <MaterialCommunityIcons name="shield" size={32} color={colors.primary} />
+            <TeamLogo logoUrl={homeLogoUrl} slug={homeSlug} colors={colors} />
           </View>
-          <Text style={[styles.matchTeamName, { color: colors.text }]} numberOfLines={2}>{event.name}</Text>
+          <Text style={[styles.matchTeamName, { color: colors.text }]} numberOfLines={2}>{homeName}</Text>
+        </View>
+        <Text style={[styles.matchVsText, { color: colors.textSecondary }]}>vs</Text>
+        <View style={styles.matchTeamCol}>
+          <View style={[styles.matchTeamIcon, { backgroundColor: colors.primary + '20' }]}>
+            <TeamLogo logoUrl={awayLogoUrl} slug={awaySlug} colors={colors} />
+          </View>
+          <Text style={[styles.matchTeamName, { color: colors.text }]} numberOfLines={2}>{awayName}</Text>
         </View>
       </View>
       <View style={[styles.matchBottom, { borderTopColor: colors.divider }]}>
@@ -61,6 +95,23 @@ function EventCard({ event, colors }: { event: BackendEvent; colors: Record<stri
           </View>
         ) : null}
       </View>
+      {minPrice > 0 && (
+        <View style={styles.tierPriceRow}>
+          {(['gold', 'silver', 'fan'] as const).map((tier) => {
+            const discounted = applyDiscount(minPrice, tier);
+            const cfg = TIER_CONFIG[tier];
+            return (
+              <View key={tier} style={[styles.tierPriceItem, { backgroundColor: cfg.color + '12' }]}>
+                <Text style={[styles.tierPriceLabel, { color: cfg.color }]}>{cfg.name}</Text>
+                <Text style={[styles.tierPriceValue, { color: cfg.color }]}>{formatCLP(discounted)}</Text>
+                {TIER_DISCOUNT[tier] > 0 && (
+                  <Text style={[styles.tierPriceDiscount, { color: cfg.color }]}>-{TIER_DISCOUNT[tier] * 100}%</Text>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      )}
       <View style={styles.buyRow}>
         <Text style={[styles.fromPrice, { color: colors.textSecondary }]}>
           {minPrice > 0 ? `Desde ${formatCLP(minPrice)}` : 'Entradas'}
@@ -191,7 +242,7 @@ export default function TicketsScreen() {
 
         {tab === 'upcoming' ? (
           events.length > 0
-            ? events.map((ev) => <EventCard key={ev.id} event={ev} colors={colors} />)
+            ? events.map((ev) => <EventCard key={ev.id} event={ev} colors={colors} clubSlug={club?.slug} />)
             : (
               <View style={styles.emptyState}>
                 <Ionicons name="calendar-outline" size={48} color={colors.textTertiary} />
@@ -249,10 +300,40 @@ const styles = StyleSheet.create({
   matchTeamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   matchTeamCol: { flex: 1, alignItems: 'center', gap: 6 },
   matchTeamIcon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  matchTeamLogoImg: { width: 32, height: 32 },
   matchTeamName: { fontFamily: 'Inter_600SemiBold', fontSize: 13, textAlign: 'center' },
+  matchVsText: { fontFamily: 'Inter_700Bold', fontSize: 16, marginHorizontal: 12 },
   matchBottom: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingTop: 14, borderTopWidth: 1, borderTopColor: 'transparent', marginBottom: 14 },
   matchMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   matchMetaText: { fontFamily: 'Inter_400Regular', fontSize: 12 },
+  tierPriceRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tierPriceItem: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  tierPriceLabel: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  tierPriceValue: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 13,
+  },
+  tierPriceDiscount: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 9,
+    marginTop: 1,
+  },
   buyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   fromPrice: { fontFamily: 'Inter_500Medium', fontSize: 13 },
   buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },

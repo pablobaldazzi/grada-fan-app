@@ -1,17 +1,18 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
 import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PushNotificationHandler } from "@/components/PushNotificationHandler";
-import { loadStoredDemoMode } from "@/lib/demo-mode";
+import { loadStoredMembershipTier } from "@/lib/membership";
 import { queryClient } from "@/lib/query-client";
 import { CartProvider } from "@/lib/cart-context";
 import { ClubProvider } from "@/lib/contexts/ClubContext";
+import { useClub } from "@/lib/contexts/ClubContext";
 import { tokenCache } from "@/lib/clerk-token-cache";
 import {
   useFonts,
@@ -31,6 +32,27 @@ if (!CLERK_PUBLISHABLE_KEY?.trim()) {
 }
 
 SplashScreen.preventAutoHideAsync();
+
+function SplashGate({ children }: { children: React.ReactNode }) {
+  const { loading } = useClub();
+  const splashHidden = useRef(false);
+
+  useEffect(() => {
+    if (!loading && !splashHidden.current) {
+      splashHidden.current = true;
+      SplashScreen.hideAsync();
+    }
+  }, [loading]);
+
+  if (loading) return null;
+
+  return <>{children}</>;
+}
+
+function ThemedStatusBar() {
+  const { themeMode } = useClub();
+  return <StatusBar style={themeMode === 'light' ? 'dark' : 'light'} />;
+}
 
 function RootLayoutNav() {
   return (
@@ -59,9 +81,11 @@ function RootLayoutNav() {
         <Stack.Screen name="match-tickets" options={{ headerShown: false, presentation: "modal" }} />
         <Stack.Screen name="product-detail" options={{ headerShown: false, presentation: "modal" }} />
         <Stack.Screen name="benefit-detail" options={{ headerShown: false, presentation: "modal" }} />
+        <Stack.Screen name="news-detail" options={{ headerShown: false, presentation: "modal" }} />
         <Stack.Screen name="experience-detail" options={{ headerShown: false, presentation: "modal" }} />
         <Stack.Screen name="cart" options={{ headerShown: false, presentation: "modal" }} />
         <Stack.Screen name="member-card-full" options={{ headerShown: false, presentation: "fullScreenModal" }} />
+        <Stack.Screen name="upgrade-membership" options={{ headerShown: false, presentation: "modal" }} />
       </Stack>
     </>
   );
@@ -74,19 +98,13 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
-  const [demoModeReady, setDemoModeReady] = useState(false);
+  const [membershipReady, setMembershipReady] = useState(false);
 
   useEffect(() => {
-    loadStoredDemoMode().then(() => setDemoModeReady(true));
+    loadStoredMembershipTier().then(() => setMembershipReady(true));
   }, []);
 
-  useEffect(() => {
-    if (fontsLoaded && demoModeReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, demoModeReady]);
-
-  if (!fontsLoaded || !demoModeReady) return null;
+  if (!fontsLoaded || !membershipReady) return null;
 
   return (
     <ErrorBoundary>
@@ -94,14 +112,16 @@ export default function RootLayout() {
         <ClerkLoaded>
           <QueryClientProvider client={queryClient}>
             <ClubProvider>
-              <CartProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardProvider>
-                    <StatusBar style="light" />
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
-              </CartProvider>
+              <SplashGate>
+                <CartProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <KeyboardProvider>
+                      <ThemedStatusBar />
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </CartProvider>
+              </SplashGate>
             </ClubProvider>
           </QueryClientProvider>
         </ClerkLoaded>

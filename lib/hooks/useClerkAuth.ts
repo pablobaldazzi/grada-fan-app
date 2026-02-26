@@ -3,6 +3,8 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useClub } from '../contexts/ClubContext';
 import { http, setHttpAuth } from '../http';
 import { registerPush, unregisterPush } from '../push';
+import { getUseMockData } from '../demo-mode';
+import { getMockProfile, MOCK_ACCESS_TOKEN } from '../mock-api-data';
 import type { Fan, FanProfile } from '../schemas';
 
 interface ProfileStatus {
@@ -19,6 +21,7 @@ export function useClerkAuth() {
   const { isSignedIn, isLoaded, getToken, signOut: clerkSignOut } = useAuth();
   const { user } = useUser();
   const { club } = useClub();
+  const isDemo = getUseMockData();
 
   const [fan, setFan] = useState<Fan | null>(null);
   const [profileStatus, setProfileStatus] = useState<ProfileStatus | null>(null);
@@ -29,10 +32,40 @@ export function useClerkAuth() {
   const clubId = club?.id;
 
   useEffect(() => {
+    if (isDemo) return;
     setHttpAuth(getToken, clubId ?? null);
-  }, [getToken, clubId]);
+  }, [getToken, clubId, isDemo]);
+
+  useEffect(() => {
+    if (!isDemo || !clubId || fetchedRef.current) {
+      if (isDemo && !clubId) setLoading(false);
+      return;
+    }
+    fetchedRef.current = true;
+    const p = getMockProfile();
+    setFan({
+      id: p.id,
+      email: p.email,
+      name: p.name,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      phone: p.phone,
+      clubId,
+    });
+    setProfileStatus({
+      profileComplete: true,
+      missingFields: [],
+      email: p.email,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      phone: p.phone,
+      nationalId: p.nationalId,
+    });
+    setLoading(false);
+  }, [isDemo, clubId]);
 
   const fetchFanProfile = useCallback(async () => {
+    if (isDemo) return;
     if (!isSignedIn || !clubId) return;
     try {
       const token = await getToken();
@@ -57,9 +90,10 @@ export function useClerkAuth() {
     } catch {
       setFan(null);
     }
-  }, [isSignedIn, clubId, getToken]);
+  }, [isSignedIn, clubId, getToken, isDemo]);
 
   const fetchProfileStatus = useCallback(async () => {
+    if (isDemo) return;
     if (!isSignedIn || !clubId) return;
     try {
       const token = await getToken();
@@ -75,9 +109,10 @@ export function useClerkAuth() {
     } catch {
       // ignore
     }
-  }, [isSignedIn, clubId, getToken]);
+  }, [isSignedIn, clubId, getToken, isDemo]);
 
   useEffect(() => {
+    if (isDemo) return;
     if (!isLoaded) return;
 
     if (!isSignedIn) {
@@ -104,32 +139,39 @@ export function useClerkAuth() {
         } catch { /* ignore */ }
       })
       .finally(() => setLoading(false));
-  }, [isLoaded, isSignedIn, clubId, fetchFanProfile, fetchProfileStatus]);
+  }, [isLoaded, isSignedIn, clubId, fetchFanProfile, fetchProfileStatus, isDemo]);
 
   const logout = useCallback(async () => {
+    if (isDemo) {
+      setFan(null);
+      setProfileStatus(null);
+      fetchedRef.current = false;
+      return;
+    }
     await unregisterPush(pushToken);
     setPushToken(null);
     setFan(null);
     setProfileStatus(null);
     fetchedRef.current = false;
     await clerkSignOut();
-  }, [pushToken, clerkSignOut]);
+  }, [pushToken, clerkSignOut, isDemo]);
 
   const refreshProfile = useCallback(async () => {
+    if (isDemo) return;
     await Promise.all([fetchFanProfile(), fetchProfileStatus()]);
-  }, [fetchFanProfile, fetchProfileStatus]);
+  }, [fetchFanProfile, fetchProfileStatus, isDemo]);
 
   return {
     fan,
-    user,
-    isSignedIn: isSignedIn ?? false,
-    isLoaded: isLoaded ?? false,
+    user: isDemo ? null : user,
+    isSignedIn: isDemo ? true : (isSignedIn ?? false),
+    isLoaded: isDemo ? true : (isLoaded ?? false),
     loading,
     profileStatus,
-    profileComplete: profileStatus?.profileComplete ?? false,
+    profileComplete: isDemo ? true : (profileStatus?.profileComplete ?? false),
     pushToken,
     setPushToken,
-    getToken,
+    getToken: isDemo ? (async () => MOCK_ACCESS_TOKEN) : getToken,
     logout,
     refreshProfile,
   };

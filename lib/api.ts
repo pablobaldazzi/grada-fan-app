@@ -2,11 +2,12 @@ import { config } from './config';
 import { getUseMockData } from './demo-mode';
 import { http } from './http';
 import {
-  mockClubWithRelations,
+  getMockClubWithRelations,
+  initMockNotifications,
   createMockAuthResponse,
   getMockProfile,
   setMockProfile,
-  mockOrders,
+  getMockOrders,
   getMockNotifications,
   markMockNotificationRead,
   getMockNotificationPrefs,
@@ -40,7 +41,8 @@ import {
 export async function fetchClubBySlug(slug: string): Promise<ClubWithRelations> {
   if (getUseMockData()) {
     await delay(250);
-    return ClubWithRelationsSchema.parse(mockClubWithRelations);
+    initMockNotifications(slug);
+    return ClubWithRelationsSchema.parse(getMockClubWithRelations(slug));
   }
   const { data } = await http.get(`/public/clubs/${slug}`);
   // Some backends may (incorrectly) return an empty body or plain text.
@@ -106,7 +108,7 @@ export async function updateProfile(body: Partial<FanProfile>): Promise<FanProfi
 export async function fetchOrders(): Promise<Order[]> {
   if (getUseMockData()) {
     await delay(350);
-    return mockOrders.map((o) => OrderSchema.parse(o));
+    return getMockOrders(config.clubSlug).map((o) => OrderSchema.parse(o));
   }
   const { data } = await http.get('/public/fans/orders');
   return (data as unknown[]).map((item) => OrderSchema.parse(item));

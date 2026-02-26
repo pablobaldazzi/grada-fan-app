@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Image,
+  ImageSourcePropType,
   Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -14,14 +15,24 @@ import * as Linking from 'expo-linking';
 import { useSignIn } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useClub } from '@/lib/contexts/ClubContext';
+import { config } from '@/lib/config';
+import { getUseMockData } from '@/lib/demo-mode';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+
+const CLUB_LOGOS: Record<string, ImageSourcePropType> = {
+  rangers: require('@/assets/clubs/rangers/splash-icon.png'),
+  'deportes-concepcion': require('@/assets/clubs/deportes-concepcion/splash-icon.png'),
+  palestino: require('@/assets/clubs/palestino/splash-icon.png'),
+  'puerto-montt': require('@/assets/clubs/puerto-montt/splash-icon.png'),
+};
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { club, theme } = useClub();
   const { signIn, setActive, isLoaded } = useSignIn();
+  const isDemo = getUseMockData();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,11 +40,21 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    if (!isLoaded || !signIn) return;
     if (!email.trim() || !password) {
       setError('Ingresa tu email y contraseña.');
       return;
     }
+
+    if (isDemo) {
+      setLoading(true);
+      setError('');
+      await new Promise((r) => setTimeout(r, 300));
+      setLoading(false);
+      router.replace('/(tabs)');
+      return;
+    }
+
+    if (!isLoaded || !signIn) return;
     setLoading(true);
     setError('');
     try {
@@ -89,6 +110,8 @@ export default function LoginScreen() {
   }, [isLoaded, signIn, setActive]);
 
   const logoUri = club?.useFullLogo ? club?.fullLogoUrl : club?.logoUrl;
+  const bundledLogo = CLUB_LOGOS[config.assetVariant] ?? CLUB_LOGOS.rangers;
+  const logoSource = logoUri ? { uri: logoUri } : bundledLogo;
 
   return (
     <KeyboardAvoidingView
@@ -97,13 +120,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.logoContainer}>
-          {logoUri ? (
-            <Image source={{ uri: logoUri }} style={styles.logo} resizeMode="contain" />
-          ) : (
-            <View style={[styles.logoPlaceholder, { backgroundColor: theme.colors.primary }]}>
-              <Text style={styles.logoPlaceholderText}>{club?.name?.charAt(0) ?? 'C'}</Text>
-            </View>
-          )}
+          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
           <Text style={[styles.clubName, { color: theme.colors.primary }]}>{club?.name ?? 'Club'}</Text>
         </View>
 
@@ -135,13 +152,13 @@ export default function LoginScreen() {
         <Button title="Entrar" onPress={handleLogin} loading={loading} style={{ marginTop: 8 }} />
 
         <View style={styles.divider}>
-          <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
           <Text style={[styles.dividerText, { color: theme.colors.textSecondary }]}>o</Text>
-          <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
         </View>
 
         <Pressable
-          style={[styles.googleButton, { borderColor: theme.colors.border }]}
+          style={[styles.googleButton, { borderColor: theme.colors.divider }]}
           onPress={handleGoogleSignIn}
           disabled={loading}
         >
@@ -163,9 +180,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   logoContainer: { alignItems: 'center', marginBottom: 32 },
-  logo: { width: 80, height: 80, borderRadius: 16 },
-  logoPlaceholder: { width: 80, height: 80, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  logoPlaceholderText: { color: '#fff', fontSize: 36, fontWeight: '700' },
+  logo: { width: 100, height: 100 },
   clubName: { fontSize: 18, fontWeight: '700', marginTop: 12 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   errorBanner: { padding: 12, borderRadius: 10, marginBottom: 16 },

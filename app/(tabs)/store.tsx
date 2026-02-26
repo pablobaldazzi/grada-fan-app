@@ -15,10 +15,12 @@ import * as Haptics from "expo-haptics";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { formatCLP } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
+import { STORE_IMAGES } from "@/lib/store-images";
 import type { BackendProduct } from "@/lib/schemas";
 
 function ProductCard({ product, colors }: { product: BackendProduct; colors: Record<string, string> }) {
   const inStock = (product.stock ?? 0) > 0;
+  const localImage = STORE_IMAGES[product.id];
 
   return (
     <Pressable
@@ -26,10 +28,12 @@ function ProductCard({ product, colors }: { product: BackendProduct; colors: Rec
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push({ pathname: "/product-detail", params: { productId: product.id } });
       }}
-      style={({ pressed }) => [styles.productCard, { backgroundColor: colors.surface, opacity: pressed ? 0.9 : 1 }]}
+      style={({ pressed }) => [styles.productCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder, opacity: pressed ? 0.9 : 1 }]}
     >
       <View style={[styles.productImage, { backgroundColor: colors.primary + '15' }]}>
-        {product.imageUrl ? (
+        {localImage ? (
+          <Image source={localImage} style={styles.productImageImg} resizeMode="cover" />
+        ) : product.imageUrl ? (
           <Image source={{ uri: product.imageUrl }} style={styles.productImageImg} resizeMode="cover" />
         ) : (
           <MaterialCommunityIcons
@@ -40,7 +44,7 @@ function ProductCard({ product, colors }: { product: BackendProduct; colors: Rec
         )}
         {!inStock && (
           <View style={[styles.soldOutBadge, { backgroundColor: colors.error }]}>
-            <Text style={[styles.soldOutText, { color: colors.text }]}>Agotado</Text>
+            <Text style={[styles.soldOutText, { color: '#FFFFFF' }]}>Agotado</Text>
           </View>
         )}
       </View>
@@ -88,7 +92,7 @@ export default function StoreScreen() {
             <Ionicons name="bag-outline" size={22} color={colors.text} />
             {itemCount > 0 && (
               <View style={[styles.cartBadge, { backgroundColor: colors.primary }]}>
-                <Text style={[styles.cartBadgeText, { color: colors.text }]}>{itemCount}</Text>
+                <Text style={[styles.cartBadgeText, { color: '#FFFFFF' }]}>{itemCount}</Text>
               </View>
             )}
           </Pressable>
@@ -106,7 +110,7 @@ export default function StoreScreen() {
               onPress={() => { Haptics.selectionAsync(); setSelectedCategory(cat); }}
               style={[styles.chip, { backgroundColor: colors.surface }, selectedCategory === cat && { backgroundColor: colors.primary }]}
             >
-              <Text style={[styles.chipText, { color: colors.textSecondary }, selectedCategory === cat && { color: colors.text }]}>
+              <Text style={[styles.chipText, { color: colors.textSecondary }, selectedCategory === cat && { color: '#FFFFFF' }]}>
                 {cat}
               </Text>
             </Pressable>

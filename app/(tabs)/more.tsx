@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,22 +10,26 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useQueryClient } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
 import {
-  MOCK_BENEFITS,
-  MOCK_EXPERIENCES,
   BENEFIT_CATEGORIES,
+  NEWS_CATEGORIES,
   Benefit,
   Experience,
+  NewsArticle,
   formatCLP,
   formatDate,
+  getMockBenefits,
+  getMockExperiences,
+  getMockNews,
+  getBenefitTierLabel,
+  getBenefitTierColor,
 } from "@/lib/mock-data";
-import { getUseMockData, setUseMockData } from "@/lib/demo-mode";
+import { TIER_CONFIG } from "@/lib/membership";
 
-type MoreTab = "benefits" | "experiences";
+type MoreTab = "noticias" | "benefits" | "experiences";
 
 function BenefitCard({ benefit, colors }: { benefit: Benefit; colors: Record<string, string> }) {
   return (
@@ -44,12 +48,17 @@ function BenefitCard({ benefit, colors }: { benefit: Benefit; colors: Record<str
       <View style={styles.benefitContent}>
         <View style={styles.benefitHeader}>
           <Text style={[styles.benefitPartner, { color: colors.textTertiary }]}>{benefit.partner}</Text>
-          {benefit.membersOnly && (
-            <View style={styles.memberOnlyBadge}>
-              <Ionicons name="star" size={9} color={colors.gold} />
-              <Text style={styles.memberOnlyText}>Socios</Text>
-            </View>
-          )}
+          {(() => {
+            const tierColor = getBenefitTierColor(benefit.requiredTier);
+            const tierLabel = benefit.requiredTier === 'fan' ? 'Todos' : getBenefitTierLabel(benefit.requiredTier);
+            const iconName = benefit.requiredTier === 'gold' ? 'crown' : benefit.requiredTier === 'silver' ? 'medal' : 'account-group';
+            return (
+              <View style={[styles.tierBadge, { backgroundColor: tierColor + '20' }]}>
+                <MaterialCommunityIcons name={iconName as any} size={10} color={tierColor} />
+                <Text style={[styles.tierBadgeText, { color: tierColor }]}>{tierLabel}</Text>
+              </View>
+            );
+          })()}
         </View>
         <Text style={[styles.benefitTitle, { color: colors.text }]} numberOfLines={2}>
           {benefit.title}
@@ -88,9 +97,9 @@ function ExperienceCard({ experience, colors }: { experience: Experience; colors
             {experience.title}
           </Text>
           {experience.membersOnly && (
-            <View style={styles.memberOnlyBadge}>
+            <View style={[styles.tierBadge, { backgroundColor: colors.gold + '20' }]}>
               <Ionicons name="star" size={9} color={colors.gold} />
-              <Text style={styles.memberOnlyText}>Socios</Text>
+              <Text style={[styles.tierBadgeText, { color: colors.gold }]}>Socios</Text>
             </View>
           )}
         </View>
@@ -110,11 +119,113 @@ function ExperienceCard({ experience, colors }: { experience: Experience; colors
   );
 }
 
+const NEWS_CATEGORY_MAP: Record<string, NewsArticle["category"]> = {
+  Resultados: "resultado",
+  Fichajes: "fichaje",
+  Institucional: "institucional",
+  Cantera: "cantera",
+  Comunidad: "comunidad",
+};
+
+const NEWS_CATEGORY_ICONS: Record<NewsArticle["category"], string> = {
+  resultado: "football",
+  fichaje: "person-add",
+  institucional: "megaphone",
+  cantera: "school",
+  comunidad: "people",
+};
+
+const NEWS_CATEGORY_LABELS: Record<NewsArticle["category"], string> = {
+  resultado: "Resultado",
+  fichaje: "Fichaje",
+  institucional: "Institucional",
+  cantera: "Cantera",
+  comunidad: "Comunidad",
+};
+
+function NewsCard({ article, colors }: { article: NewsArticle; colors: Record<string, string> }) {
+  const icon = NEWS_CATEGORY_ICONS[article.category];
+  const label = NEWS_CATEGORY_LABELS[article.category];
+  const date = new Date(article.publishedAt);
+  const timeStr = `${date.getDate()} ${["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][date.getMonth()]}`;
+
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push({ pathname: "/news-detail", params: { newsId: article.id } });
+      }}
+      style={({ pressed }) => [styles.newsCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder, opacity: pressed ? 0.85 : 1 }]}
+    >
+      <View style={[styles.newsIconArea, { backgroundColor: colors.primary + "15" }]}>
+        <Ionicons name={icon as any} size={22} color={colors.primary} />
+      </View>
+      <View style={styles.newsContent}>
+        <View style={styles.newsHeaderRow}>
+          <Text style={[styles.newsCategoryLabel, { color: colors.primary }]}>{label}</Text>
+          <Text style={[styles.newsDate, { color: colors.textTertiary }]}>{timeStr}</Text>
+        </View>
+        <Text style={[styles.newsTitle, { color: colors.text }]} numberOfLines={2}>{article.title}</Text>
+        <Text style={[styles.newsSummary, { color: colors.textSecondary }]} numberOfLines={2}>{article.summary}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+    </Pressable>
+  );
+}
+
+function NewsSection({ colors }: { colors: Record<string, string> }) {
+  const [selectedCat, setSelectedCat] = useState("Todas");
+  const allNews = getMockNews();
+
+  const filtered = selectedCat === "Todas"
+    ? allNews
+    : allNews.filter((n) => n.category === NEWS_CATEGORY_MAP[selectedCat]);
+
+  return (
+    <>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chips}
+        style={styles.chipsContainer}
+      >
+        {NEWS_CATEGORIES.map((cat) => (
+          <Pressable
+            key={cat}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setSelectedCat(cat);
+            }}
+            style={[
+              styles.chip,
+              { backgroundColor: selectedCat === cat ? colors.primary : colors.surfaceHighlight },
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                { color: selectedCat === cat ? "#FFFFFF" : colors.textSecondary },
+              ]}
+            >
+              {cat}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+      {filtered.map((article) => (
+        <NewsCard key={article.id} article={article} colors={colors} />
+      ))}
+    </>
+  );
+}
+
 function BenefitsSection({ colors }: { colors: Record<string, string> }) {
   const [selectedCat, setSelectedCat] = useState("TODO");
+  const { club } = useClub();
+  const benefits = getMockBenefits(club?.slug ?? 'rangers');
 
   const filtered =
-    selectedCat === "TODO" ? MOCK_BENEFITS : MOCK_BENEFITS.filter((b) => b.category === selectedCat);
+    selectedCat === "TODO" ? benefits : benefits.filter((b) => b.category === selectedCat);
 
   return (
     <>
@@ -157,17 +268,17 @@ function BenefitsSection({ colors }: { colors: Record<string, string> }) {
 export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const [activeTab, setActiveTab] = useState<MoreTab>("benefits");
-  const [useDemoMode, setUseDemoMode] = useState(getUseMockData);
-  const queryClient = useQueryClient();
-  const { theme } = useClub();
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<MoreTab>((params.tab as MoreTab) || "noticias");
+  const { club, theme, themeMode, setThemeMode } = useClub();
   const colors = theme.colors;
+  const experiences = getMockExperiences(club?.slug ?? 'rangers');
 
-  const handleDemoModeToggle = async (value: boolean) => {
-    await setUseMockData(value);
-    setUseDemoMode(value);
-    queryClient.invalidateQueries();
-  };
+  useEffect(() => {
+    if (params.tab && (params.tab === "noticias" || params.tab === "benefits" || params.tab === "experiences")) {
+      setActiveTab(params.tab);
+    }
+  }, [params.tab]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -183,17 +294,21 @@ export default function MoreScreen() {
         <Text style={[styles.title, { color: colors.text }]}>Mas</Text>
 
         <View style={[styles.demoRow, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-          <Text style={[styles.demoLabel, { color: colors.text }]}>Modo demo</Text>
+          <View style={styles.settingRow}>
+            <Ionicons name={themeMode === 'dark' ? 'moon' : 'sunny'} size={18} color={colors.primary} />
+            <Text style={[styles.demoLabel, { color: colors.text }]}>Modo claro</Text>
+          </View>
           <Switch
-            value={useDemoMode}
-            onValueChange={handleDemoModeToggle}
+            value={themeMode === 'light'}
+            onValueChange={(val) => setThemeMode(val ? 'light' : 'dark')}
             trackColor={{ false: colors.surfaceHighlight, true: colors.primary + "80" }}
-            thumbColor={useDemoMode ? colors.primary : colors.textTertiary}
+            thumbColor={themeMode === 'light' ? colors.primary : colors.textTertiary}
           />
         </View>
 
         <View style={[styles.tabBar, { backgroundColor: colors.surface }]}>
           {([
+            { key: "noticias", label: "Noticias", icon: "newspaper" },
             { key: "benefits", label: "Beneficios", icon: "pricetag" },
             { key: "experiences", label: "Experiencias", icon: "sparkles" },
           ] as const).map((t) => (
@@ -208,12 +323,12 @@ export default function MoreScreen() {
               <Ionicons
                 name={t.icon}
                 size={16}
-                color={activeTab === t.key ? colors.text : colors.textSecondary}
+                color={activeTab === t.key ? "#FFFFFF" : colors.textSecondary}
               />
               <Text
                 style={[
                   styles.tabBtnText,
-                  { color: activeTab === t.key ? colors.text : colors.textSecondary },
+                  { color: activeTab === t.key ? "#FFFFFF" : colors.textSecondary },
                 ]}
               >
                 {t.label}
@@ -222,10 +337,12 @@ export default function MoreScreen() {
           ))}
         </View>
 
+        {activeTab === "noticias" && <NewsSection colors={colors} />}
+
         {activeTab === "benefits" && <BenefitsSection colors={colors} />}
 
         {activeTab === "experiences" &&
-          MOCK_EXPERIENCES.map((exp) => <ExperienceCard key={exp.id} experience={exp} colors={colors} />)}
+          experiences.map((exp) => <ExperienceCard key={exp.id} experience={exp} colors={colors} />)}
       </ScrollView>
     </View>
   );
@@ -248,6 +365,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 16,
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
   demoLabel: {
     fontFamily: "Inter_500Medium",
@@ -318,19 +440,17 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  memberOnlyBadge: {
+  tierBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#FFD70020",
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  memberOnlyText: {
+  tierBadgeText: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 10,
-    color: "#FFD700",
   },
   benefitTitle: {
     fontFamily: "Inter_700Bold",
@@ -382,5 +502,48 @@ const styles = StyleSheet.create({
   },
   expSpotsLow: {
     color: "#F39C12",
+  },
+  newsCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    gap: 12,
+    borderWidth: 1,
+  },
+  newsIconArea: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  newsContent: { flex: 1 },
+  newsHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  newsCategoryLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  newsDate: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+  },
+  newsTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  newsSummary: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    lineHeight: 17,
   },
 });

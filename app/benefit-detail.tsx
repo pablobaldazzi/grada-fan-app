@@ -8,16 +8,20 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/colors";
-import { MOCK_BENEFITS } from "@/lib/mock-data";
+import { getMockBenefits, getBenefitTierLabel, getBenefitTierColor } from "@/lib/mock-data";
+import { TIER_CONFIG } from "@/lib/membership";
+import { useClub } from "@/lib/contexts/ClubContext";
 
 export default function BenefitDetailScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { benefitId } = useLocalSearchParams<{ benefitId: string }>();
-  const benefit = MOCK_BENEFITS.find(b => b.id === benefitId) || MOCK_BENEFITS[0];
+  const { club } = useClub();
+  const benefits = getMockBenefits(club?.slug ?? 'rangers');
+  const benefit = benefits.find(b => b.id === benefitId) || benefits[0];
 
   return (
     <View style={styles.container}>
@@ -43,12 +47,19 @@ export default function BenefitDetailScreen() {
         <View style={styles.infoCard}>
           <Text style={styles.benefitTitle}>{benefit.title}</Text>
 
-          {benefit.membersOnly && (
-            <View style={styles.memberBadge}>
-              <Ionicons name="star" size={12} color={Colors.gold} />
-              <Text style={styles.memberBadgeText}>Exclusivo para socios</Text>
-            </View>
-          )}
+          {(() => {
+            const tierColor = getBenefitTierColor(benefit.requiredTier);
+            const tierLabel = benefit.requiredTier === 'fan'
+              ? 'Disponible para todos'
+              : `Exclusivo ${getBenefitTierLabel(benefit.requiredTier)}`;
+            const iconName = benefit.requiredTier === 'gold' ? 'crown' : benefit.requiredTier === 'silver' ? 'medal' : 'account-group';
+            return (
+              <View style={[styles.memberBadge, { backgroundColor: tierColor + '15' }]}>
+                <MaterialCommunityIcons name={iconName as any} size={14} color={tierColor} />
+                <Text style={[styles.memberBadgeText, { color: tierColor }]}>{tierLabel}</Text>
+              </View>
+            );
+          })()}
 
           <Text style={styles.description}>{benefit.description}</Text>
 
@@ -68,6 +79,16 @@ export default function BenefitDetailScreen() {
             </View>
           </View>
 
+          <View style={styles.detailRow}>
+            <Ionicons name="ribbon" size={18} color={getBenefitTierColor(benefit.requiredTier)} />
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Membresía requerida</Text>
+              <Text style={[styles.detailValue, { color: getBenefitTierColor(benefit.requiredTier) }]}>
+                {benefit.requiredTier === 'fan' ? 'Todos los usuarios' : TIER_CONFIG[benefit.requiredTier].displayName + ' o superior'}
+              </Text>
+            </View>
+          </View>
+
           {benefit.location && (
             <View style={styles.detailRow}>
               <Ionicons name="location" size={18} color={Colors.primary} />
@@ -83,7 +104,7 @@ export default function BenefitDetailScreen() {
           <Text style={styles.rulesTitle}>Condiciones de uso</Text>
           <View style={styles.ruleItem}>
             <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-            <Text style={styles.ruleText}>Presenta tu carnet de socio Rangers ID</Text>
+            <Text style={styles.ruleText}>Presenta tu carnet de socio {club?.name ?? 'del club'}</Text>
           </View>
           <View style={styles.ruleItem}>
             <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
@@ -162,7 +183,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.gold + '15',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -172,7 +192,6 @@ const styles = StyleSheet.create({
   memberBadgeText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 12,
-    color: Colors.gold,
   },
   description: {
     fontFamily: 'Inter_400Regular',

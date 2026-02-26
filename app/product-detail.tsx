@@ -15,6 +15,7 @@ import * as Haptics from "expo-haptics";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { formatCLP } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
+import { STORE_IMAGES } from "@/lib/store-images";
 
 export default function ProductDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -27,6 +28,7 @@ export default function ProductDetailScreen() {
   const [quantity, setQuantity] = useState(1);
 
   const inStock = product ? (product.stock ?? 0) > 0 : false;
+  const localImage = product ? STORE_IMAGES[product.id] : undefined;
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -67,7 +69,9 @@ export default function ProductDetailScreen() {
 
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
         <View style={[styles.imageArea, { backgroundColor: colors.surface }]}>
-          {product.imageUrl ? (
+          {localImage ? (
+            <Image source={localImage} style={styles.imageFill} resizeMode="contain" />
+          ) : product.imageUrl ? (
             <Image source={{ uri: product.imageUrl }} style={styles.imageFill} resizeMode="contain" />
           ) : (
             <MaterialCommunityIcons name="tshirt-crew" size={80} color={inStock ? colors.primary : colors.textTertiary} />

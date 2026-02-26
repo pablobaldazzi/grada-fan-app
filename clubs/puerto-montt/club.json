@@ -1,0 +1,35 @@
+{
+  "tenantKey": "puerto-montt",
+  "clubId": "club_puerto_montt_001",
+  "displayName": "Deportes Puerto Montt",
+  "appName": "Deportes Puerto Montt App",
+  "theme": {
+    "primary": "#009639",
+    "primaryDark": "#006B28",
+    "secondary": "#FFFFFF",
+    "background": "#0A0A0A",
+    "surface": "#151515",
+    "text": "#FFFFFF",
+    "accent": "#FFFFFF"
+  },
+  "logo": "puerto_montt_crest.png",
+  "deepLinkDomain": "puertomontt.clubapp.com",
+  "features": {
+    "home": true,
+    "membershipId": true,
+    "tickets": true,
+    "merch": true,
+    "benefits": true,
+    "experiences": true,
+    "notifications": true,
+    "academy": false
+  },
+  "legal": {
+    "privacyPolicy": "https://puertomontt.club/privacy",
+    "termsOfService": "https://puertomontt.club/terms"
+  },
+  "support": {
+    "email": "soporte@puertomontt.club",
+    "ticketsFaq": "https://puertomontt.club/faq/tickets"
+  }
+}
