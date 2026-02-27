@@ -256,8 +256,8 @@ export default function HomeScreen() {
 
         <View style={styles.quickActions}>
           <QuickAction icon="card" label="Mi Carnet" onPress={() => router.push("/(tabs)/membership")} colors={colors} />
-          <QuickAction icon="ticket" label="Entradas" onPress={() => router.push("/(tabs)/tickets")} colors={colors} />
-          <QuickAction icon="bag" label="Tienda" onPress={() => router.push("/(tabs)/store")} colors={colors} />
+          <QuickAction icon="newspaper" label="Noticias" onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "noticias" } })} colors={colors} />
+          <QuickAction icon="people" label="Plantel" onPress={() => router.push("/plantel")} colors={colors} />
           <QuickAction icon="star" label="Beneficios" onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "benefits" } })} colors={colors} />
         </View>
 

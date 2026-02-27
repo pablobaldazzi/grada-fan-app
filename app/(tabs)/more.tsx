@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   expSpotsLow: {
-    color: "#F39C12",
+    color: '#F39C12',
   },
   newsCard: {
     flexDirection: "row",

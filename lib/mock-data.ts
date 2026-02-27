@@ -115,6 +115,23 @@ export interface NewsArticle {
   author?: string;
 }
 
+export type PlayerPosition = 'GK' | 'DEF' | 'MID' | 'FWD';
+
+export interface SquadPlayer {
+  id: string;
+  name: string;
+  number: number;
+  position: PlayerPosition;
+  role: string;
+}
+
+export interface SquadFormation {
+  name: string;
+  coach: string;
+  startingEleven: SquadPlayer[];
+  substitutes: SquadPlayer[];
+}
+
 export interface Notification {
   id: string;
   title: string;
@@ -926,6 +943,111 @@ const PUERTO_MONTT_NEWS: NewsArticle[] = [
 
 export function getMockNews(): NewsArticle[] {
   return PUERTO_MONTT_NEWS;
+}
+
+const SQUAD_PUERTO_MONTT: SquadFormation = {
+  name: '4-4-2',
+  coach: 'Emiliano Astorga',
+  startingEleven: [
+    { id: 'sp_pm_01', name: 'G. Collao', number: 29, position: 'GK', role: 'Portero' },
+    { id: 'sp_pm_02', name: 'B. Nieto', number: 17, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_pm_03', name: 'A. Morales', number: 2, position: 'DEF', role: 'Central' },
+    { id: 'sp_pm_04', name: 'M. Riveros', number: 4, position: 'DEF', role: 'Central' },
+    { id: 'sp_pm_05', name: 'K. Egaña', number: 15, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_pm_06', name: 'M. Clerveaux', number: 7, position: 'MID', role: 'Extremo derecho' },
+    { id: 'sp_pm_07', name: 'D. Díaz', number: 6, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_pm_08', name: 'G. Castillo', number: 23, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_pm_09', name: 'A. Sabella', number: 18, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_pm_10', name: 'L. Vásquez', number: 9, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_pm_11', name: 'R. Castro', number: 11, position: 'FWD', role: 'Delantero centro' },
+  ],
+  substitutes: [
+    { id: 'sp_pm_12', name: 'L. Ureta', number: 13, position: 'GK', role: 'Portero' },
+    { id: 'sp_pm_13', name: 'J. Pino', number: 3, position: 'DEF', role: 'Central' },
+    { id: 'sp_pm_14', name: 'F. Calisto', number: 5, position: 'DEF', role: 'Central' },
+    { id: 'sp_pm_15', name: 'D. Bahamonde', number: 20, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_pm_16', name: 'J. Cárdenas', number: 14, position: 'MID', role: 'Mediocampista defensivo' },
+    { id: 'sp_pm_17', name: 'C. Vargas', number: 10, position: 'MID', role: 'Mediocampista ofensivo' },
+    { id: 'sp_pm_18', name: 'J. Jaime', number: 22, position: 'MID', role: 'Mediocampista defensivo' },
+    { id: 'sp_pm_19', name: 'J. Flores', number: 16, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_pm_20', name: 'S. Pérez', number: 28, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_pm_21', name: 'S. Negrete', number: 30, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_pm_22', name: 'L. Mansilla', number: 24, position: 'FWD', role: 'Delantero centro' },
+  ],
+};
+
+const SQUAD_RANGERS: SquadFormation = {
+  name: '4-3-3',
+  coach: 'Erwin Durán',
+  startingEleven: [
+    { id: 'sp_rng_01', name: 'J.L. Gamonal', number: 1, position: 'GK', role: 'Portero' },
+    { id: 'sp_rng_02', name: 'K. Vásquez', number: 3, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_rng_03', name: 'C. Labrín', number: 2, position: 'DEF', role: 'Central' },
+    { id: 'sp_rng_04', name: 'J. Navarrete', number: 4, position: 'DEF', role: 'Central' },
+    { id: 'sp_rng_05', name: 'M. Cortés', number: 6, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_rng_06', name: 'A. Márquez', number: 8, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_rng_07', name: 'G. Moya', number: 20, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_rng_08', name: 'M. González', number: 10, position: 'MID', role: 'Mediocampista ofensivo' },
+    { id: 'sp_rng_09', name: 'I. Ibáñez', number: 7, position: 'FWD', role: 'Extremo derecho' },
+    { id: 'sp_rng_10', name: 'S. Ribas', number: 9, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_rng_11', name: 'M. Vicuña', number: 11, position: 'FWD', role: 'Extremo izquierdo' },
+  ],
+  substitutes: [
+    { id: 'sp_rng_12', name: 'C. Campestrini', number: 17, position: 'GK', role: 'Portero' },
+    { id: 'sp_rng_13', name: 'M. Torres', number: 12, position: 'GK', role: 'Portero' },
+    { id: 'sp_rng_14', name: 'S. Acuña', number: 14, position: 'DEF', role: 'Central' },
+    { id: 'sp_rng_15', name: 'A. Mora', number: 13, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_rng_16', name: 'C. Servetti', number: 27, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_rng_17', name: 'A. Rodríguez', number: 18, position: 'MID', role: 'Mediocampista defensivo' },
+    { id: 'sp_rng_18', name: 'P. Mora', number: 21, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_rng_19', name: 'D. Plaza', number: 22, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_rng_20', name: 'J. Méndez', number: 23, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_rng_21', name: 'J. Araya', number: 16, position: 'FWD', role: 'Extremo izquierdo' },
+    { id: 'sp_rng_22', name: 'J.T. Herrera', number: 26, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_rng_23', name: 'C. Muñoz', number: 31, position: 'FWD', role: 'Delantero centro' },
+  ],
+};
+
+const SQUAD_PALESTINO: SquadFormation = {
+  name: '4-2-3-1',
+  coach: 'Cristián Muñoz',
+  startingEleven: [
+    { id: 'sp_pal_01', name: 'S. Pérez', number: 25, position: 'GK', role: 'Portero' },
+    { id: 'sp_pal_02', name: 'V. Espinoza', number: 2, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_pal_03', name: 'A. Ceza', number: 4, position: 'DEF', role: 'Central' },
+    { id: 'sp_pal_04', name: 'E. Roco', number: 3, position: 'DEF', role: 'Central' },
+    { id: 'sp_pal_05', name: 'J. León', number: 23, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_pal_06', name: 'J. Fernández', number: 5, position: 'MID', role: 'Mediocampista defensivo' },
+    { id: 'sp_pal_07', name: 'N. Meza', number: 8, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_pal_08', name: 'B. Carrasco', number: 7, position: 'MID', role: 'Extremo derecho' },
+    { id: 'sp_pal_09', name: 'J. Abrigo', number: 14, position: 'MID', role: 'Mediocampista ofensivo' },
+    { id: 'sp_pal_10', name: 'J. Benítez', number: 11, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_pal_11', name: 'R. Fernández', number: 9, position: 'FWD', role: 'Delantero centro' },
+  ],
+  substitutes: [
+    { id: 'sp_pal_12', name: 'S. Salas', number: 1, position: 'GK', role: 'Portero' },
+    { id: 'sp_pal_13', name: 'J. Bizama', number: 16, position: 'DEF', role: 'Central' },
+    { id: 'sp_pal_14', name: 'F. Meza', number: 6, position: 'DEF', role: 'Central' },
+    { id: 'sp_pal_15', name: 'D. Zúñiga', number: 28, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_pal_16', name: 'I. Garguez', number: 29, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_pal_17', name: 'S. Pinto', number: 22, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_pal_18', name: 'F. Montes', number: 15, position: 'MID', role: 'Mediocampista defensivo' },
+    { id: 'sp_pal_19', name: 'A. Martínez', number: 10, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_pal_20', name: 'S. Gallegos', number: 18, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_pal_21', name: 'C. Munder', number: 27, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_pal_22', name: 'G. Tapia', number: 20, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_pal_23', name: 'N. Da Silva', number: 19, position: 'FWD', role: 'Delantero centro' },
+  ],
+};
+
+const SQUAD_BY_CLUB: Record<string, SquadFormation> = {
+  'puerto-montt': SQUAD_PUERTO_MONTT,
+  rangers: SQUAD_RANGERS,
+  palestino: SQUAD_PALESTINO,
+};
+
+export function getMockSquad(slug: string): SquadFormation | null {
+  return SQUAD_BY_CLUB[slug] ?? null;
 }
 
 export const MOCK_NOTIFICATIONS: Notification[] = [
