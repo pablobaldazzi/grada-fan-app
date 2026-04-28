@@ -31,10 +31,8 @@ export function PushNotificationHandler() {
     });
 
     return () => {
-      if (subscriptionRef.current) {
-        Notifications.removeNotificationSubscription(subscriptionRef.current);
-        subscriptionRef.current = null;
-      }
+      subscriptionRef.current?.remove();
+      subscriptionRef.current = null;
     };
   }, []);
 

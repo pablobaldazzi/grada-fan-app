@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,12 @@ import {
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '@clerk/clerk-expo';
 import { useClub } from '@/lib/contexts/ClubContext';
 import { useClerkAuth } from '@/lib/hooks/useClerkAuth';
 import { http } from '@/lib/http';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { getUseMockData } from '@/lib/demo-mode';
 
 function formatRut(value: string) {
   const cleaned = value.replace(/[^0-9kK]/g, '').toUpperCase();
@@ -43,9 +43,23 @@ function isValidRut(rut: string): boolean {
 }
 
 export default function CompleteProfileScreen() {
+  const isDemo = getUseMockData();
+  return isDemo ? <DemoCompleteProfileScreen /> : <ClerkCompleteProfileScreen />;
+}
+
+function DemoCompleteProfileScreen() {
+  // In demo mode `useClerkAuth()` already reports the profile as complete.
+  useEffect(() => {
+    router.replace('/(tabs)');
+  }, []);
+  return null;
+}
+
+function ClerkCompleteProfileScreen() {
   const { club, theme } = useClub();
-  const { getToken } = useAuth();
   const { profileStatus, refreshProfile } = useClerkAuth();
+  const { useAuth } = require('@clerk/clerk-expo') as typeof import('@clerk/clerk-expo');
+  const { getToken } = useAuth();
 
   const missing = profileStatus?.missingFields ?? [];
 

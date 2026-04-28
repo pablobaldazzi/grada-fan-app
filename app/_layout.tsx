@@ -5,7 +5,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
-import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PushNotificationHandler } from "@/components/PushNotificationHandler";
 import { loadStoredMembershipTier } from "@/lib/membership";
@@ -14,6 +13,7 @@ import { CartProvider } from "@/lib/cart-context";
 import { ClubProvider } from "@/lib/contexts/ClubContext";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { tokenCache } from "@/lib/clerk-token-cache";
+import { getUseMockData } from "@/lib/demo-mode";
 import {
   useFonts,
   Inter_400Regular,
@@ -23,13 +23,6 @@ import {
 } from "@expo-google-fonts/inter";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-if (!CLERK_PUBLISHABLE_KEY?.trim()) {
-  throw new Error(
-    'Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Add it to your .env file.\n' +
-    'Get a key from https://dashboard.clerk.com → API Keys.',
-  );
-}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -99,12 +92,44 @@ export default function RootLayout() {
     Inter_700Bold,
   });
   const [membershipReady, setMembershipReady] = useState(false);
+  const isDemo = getUseMockData();
+
+  if (!isDemo && !CLERK_PUBLISHABLE_KEY?.trim()) {
+    throw new Error(
+      'Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Add it to your .env file.\n' +
+        'Get a key from https://dashboard.clerk.com → API Keys.',
+    );
+  }
 
   useEffect(() => {
     loadStoredMembershipTier().then(() => setMembershipReady(true));
   }, []);
 
   if (!fontsLoaded || !membershipReady) return null;
+
+  if (isDemo) {
+    return (
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ClubProvider>
+            <SplashGate>
+              <CartProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <ThemedStatusBar />
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </CartProvider>
+            </SplashGate>
+          </ClubProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    );
+  }
+
+  // Clerk is only required in non-demo mode; demo mode avoids native module init issues.
+  const { ClerkProvider, ClerkLoaded } = require("@clerk/clerk-expo") as typeof import("@clerk/clerk-expo");
 
   return (
     <ErrorBoundary>

@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { useSignIn } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useClub } from '@/lib/contexts/ClubContext';
 import { config } from '@/lib/config';
@@ -30,9 +29,12 @@ const CLUB_LOGOS: Record<string, ImageSourcePropType> = {
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const { club, theme } = useClub();
-  const { signIn, setActive, isLoaded } = useSignIn();
   const isDemo = getUseMockData();
+  return isDemo ? <DemoLoginScreen /> : <ClerkLoginScreen />;
+}
+
+function DemoLoginScreen() {
+  const { club, theme } = useClub();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,12 +47,93 @@ export default function LoginScreen() {
       return;
     }
 
-    if (isDemo) {
-      setLoading(true);
-      setError('');
-      await new Promise((r) => setTimeout(r, 300));
-      setLoading(false);
-      router.replace('/(tabs)');
+    setLoading(true);
+    setError('');
+    await new Promise((r) => setTimeout(r, 300));
+    setLoading(false);
+    router.replace('/(tabs)');
+  };
+
+  const logoUri = club?.useFullLogo ? club?.fullLogoUrl : club?.logoUrl;
+  const bundledLogo = CLUB_LOGOS[config.assetVariant] ?? CLUB_LOGOS.rangers;
+  const logoSource = logoUri ? { uri: logoUri } : bundledLogo;
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.logoContainer}>
+          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+          <Text style={[styles.clubName, { color: theme.colors.primary }]}>{club?.name ?? 'Club'}</Text>
+        </View>
+
+        <Text style={[styles.title, { color: theme.colors.text }]}>Iniciar sesión</Text>
+
+        {error ? (
+          <View style={[styles.errorBanner, { backgroundColor: theme.colors.error + '20' }]}>
+            <Text style={{ color: theme.colors.error, fontSize: 14 }}>{error}</Text>
+          </View>
+        ) : null}
+
+        <Input
+          label="Email"
+          placeholder="tu@ejemplo.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+        />
+        <Input
+          label="Contraseña"
+          placeholder="Tu contraseña"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <Button title="Entrar" onPress={handleLogin} loading={loading} style={{ marginTop: 8 }} />
+
+        <View style={styles.divider}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
+          <Text style={[styles.dividerText, { color: theme.colors.textSecondary }]}>o</Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
+        </View>
+
+        <Pressable
+          style={[styles.googleButton, { borderColor: theme.colors.divider }]}
+          disabled
+          onPress={() => setError('Google no está disponible en modo demo.')}
+        >
+          <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>Continuar con Google</Text>
+        </Pressable>
+
+        <Pressable onPress={() => router.push('/(auth)/register')} style={styles.link}>
+          <Text style={{ color: theme.colors.textSecondary }}>
+            ¿No tienes cuenta?{' '}
+            <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Registrarse</Text>
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function ClerkLoginScreen() {
+  const { club, theme } = useClub();
+  const { useSignIn } = require('@clerk/clerk-expo') as typeof import('@clerk/clerk-expo');
+  const { signIn, setActive, isLoaded } = useSignIn();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      setError('Ingresa tu email y contraseña.');
       return;
     }
 
@@ -71,11 +154,8 @@ export default function LoginScreen() {
       }
     } catch (e: any) {
       const msg = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message;
-      if (msg) {
-        setError(msg);
-      } else {
-        setError('Email o contraseña incorrectos.');
-      }
+      if (msg) setError(msg);
+      else setError('Email o contraseña incorrectos.');
     } finally {
       setLoading(false);
     }
@@ -87,10 +167,13 @@ export default function LoginScreen() {
     setError('');
     try {
       const redirectUrl = Linking.createURL('');
-      const { createdSessionId, signIn: si } = await signIn.create({
+      const result = await signIn.create({
         strategy: 'oauth_google',
         redirectUrl,
       });
+
+      const createdSessionId = (result as any)?.createdSessionId as string | undefined;
+      const si = (result as any)?.signIn;
 
       const externalUrl = (si as any)?.firstFactorVerification?.externalVerificationRedirectURL;
       if (externalUrl) {
@@ -162,14 +245,13 @@ export default function LoginScreen() {
           onPress={handleGoogleSignIn}
           disabled={loading}
         >
-          <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>
-            Continuar con Google
-          </Text>
+          <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>Continuar con Google</Text>
         </Pressable>
 
         <Pressable onPress={() => router.push('/(auth)/register')} style={styles.link}>
           <Text style={{ color: theme.colors.textSecondary }}>
-            ¿No tienes cuenta? <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Registrarse</Text>
+            ¿No tienes cuenta?{' '}
+            <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Registrarse</Text>
           </Text>
         </Pressable>
       </ScrollView>

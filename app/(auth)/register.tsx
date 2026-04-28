@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { useSignUp } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useClub } from '@/lib/contexts/ClubContext';
 import { config } from '@/lib/config';
@@ -30,9 +29,117 @@ const CLUB_LOGOS: Record<string, ImageSourcePropType> = {
 WebBrowser.maybeCompleteAuthSession();
 
 export default function RegisterScreen() {
-  const { club, theme } = useClub();
-  const { signUp, setActive, isLoaded } = useSignUp();
   const isDemo = getUseMockData();
+  return isDemo ? <DemoRegisterScreen /> : <ClerkRegisterScreen />;
+}
+
+function DemoRegisterScreen() {
+  const { club, theme } = useClub();
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const logoUri = club?.useFullLogo ? club?.fullLogoUrl : club?.logoUrl;
+  const bundledLogo = CLUB_LOGOS[config.assetVariant] ?? CLUB_LOGOS.rangers;
+  const logoSource = logoUri ? { uri: logoUri } : bundledLogo;
+
+  const handleRegister = async () => {
+    if (!email.trim() || !password) {
+      setError('Ingresa tu email y contraseña.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    await new Promise((r) => setTimeout(r, 300));
+    setLoading(false);
+    router.replace('/(tabs)');
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.logoContainer}>
+          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+        </View>
+
+        <Text style={[styles.title, { color: theme.colors.text }]}>Crear cuenta</Text>
+
+        {error ? (
+          <View style={[styles.errorBanner, { backgroundColor: theme.colors.error + '20' }]}>
+            <Text style={{ color: theme.colors.error, fontSize: 14 }}>{error}</Text>
+          </View>
+        ) : null}
+
+        <Input
+          label="Nombre"
+          placeholder="Juan"
+          value={firstName}
+          onChangeText={setFirstName}
+          autoComplete="given-name"
+        />
+        <Input
+          label="Apellido"
+          placeholder="Pérez"
+          value={lastName}
+          onChangeText={setLastName}
+          autoComplete="family-name"
+        />
+        <Input
+          label="Email"
+          placeholder="tu@ejemplo.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+        />
+        <Input
+          label="Contraseña"
+          placeholder="Mín. 8 caracteres"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <Button title="Crear cuenta" onPress={handleRegister} loading={loading} style={{ marginTop: 8 }} />
+
+        <View style={styles.divider}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
+          <Text style={[styles.dividerText, { color: theme.colors.textSecondary }]}>o</Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.divider }]} />
+        </View>
+
+        <Pressable style={[styles.googleButton, { borderColor: theme.colors.divider }]} disabled>
+          <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>Registrarse con Google</Text>
+        </Pressable>
+
+        <Pressable onPress={() => router.back()} style={styles.link}>
+          <Text style={{ color: theme.colors.textSecondary }}>
+            ¿Ya tienes cuenta?{' '}
+            <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Iniciar sesión</Text>
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function ClerkRegisterScreen() {
+  const { club, theme } = useClub();
+  const { useSignUp } = require('@clerk/clerk-expo') as typeof import('@clerk/clerk-expo');
+  const { signUp, setActive, isLoaded } = useSignUp();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -50,15 +157,6 @@ export default function RegisterScreen() {
     }
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres.');
-      return;
-    }
-
-    if (isDemo) {
-      setLoading(true);
-      setError('');
-      await new Promise((r) => setTimeout(r, 300));
-      setLoading(false);
-      router.replace('/(tabs)');
       return;
     }
 
@@ -224,9 +322,7 @@ export default function RegisterScreen() {
               onPress={handleGoogleSignUp}
               disabled={loading}
             >
-              <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>
-                Registrarse con Google
-              </Text>
+              <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>Registrarse con Google</Text>
             </Pressable>
           </>
         )}

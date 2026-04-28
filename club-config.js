@@ -10,6 +10,7 @@ exports.CLUB_SLUG_TO_VARIANT = {
   'deportes-concepcion': 'deportes-concepcion',
   palestino: 'palestino',
   'puerto-montt': 'puerto-montt',
+  'union-espanola': 'union-espanola',
 };
 
 exports.CLUB_CONFIGS = {
@@ -44,5 +45,13 @@ exports.CLUB_CONFIGS = {
     bundleId: 'com.grada.puertomontt',
     package: 'com.grada.puertomontt',
     clubSlug: 'puerto-montt',
+  },
+  'union-espanola': {
+    name: 'Unión Española App',
+    slug: 'union-espanola-app',
+    scheme: 'unionespanolaapp',
+    bundleId: 'com.grada.unionespanola',
+    package: 'com.grada.unionespanola',
+    clubSlug: 'union-espanola',
   },
 };

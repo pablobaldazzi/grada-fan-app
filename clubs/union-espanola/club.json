@@ -1,0 +1,35 @@
+{
+  "tenantKey": "union-espanola",
+  "clubId": "club_union_espanola_001",
+  "displayName": "Unión Española",
+  "appName": "Unión Española App",
+  "theme": {
+    "primary": "#E31E24",
+    "primaryDark": "#B71518",
+    "secondary": "#1A3A7A",
+    "background": "#0A0A0A",
+    "surface": "#151515",
+    "text": "#FFFFFF",
+    "accent": "#FFD700"
+  },
+  "logo": "union_espanola_crest.png",
+  "deepLinkDomain": "unionespanola.clubapp.com",
+  "features": {
+    "home": true,
+    "membershipId": true,
+    "tickets": true,
+    "merch": true,
+    "benefits": true,
+    "experiences": true,
+    "notifications": true,
+    "academy": false
+  },
+  "legal": {
+    "privacyPolicy": "https://unionespanola.cl/privacy",
+    "termsOfService": "https://unionespanola.cl/terms"
+  },
+  "support": {
+    "email": "soporte@unionespanola.cl",
+    "ticketsFaq": "https://unionespanola.cl/faq/tickets"
+  }
+}
