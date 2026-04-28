@@ -7,32 +7,153 @@ import {
   Pressable,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
-import { getMockExperiences, formatCLP, formatDate } from "@/lib/mock-data";
+import { fetchClubExperience, reserveExperience } from "@/lib/api";
+import { formatCLP, formatDate } from "@/lib/mock-data";
 import { useClub } from "@/lib/contexts/ClubContext";
+import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
+import { useMembership } from "@/lib/hooks/useMembership";
 
 export default function ExperienceDetailScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { experienceId } = useLocalSearchParams<{ experienceId: string }>();
   const { club } = useClub();
-  const experiences = getMockExperiences(club?.slug ?? 'rangers');
-  const exp = experiences.find(e => e.id === experienceId) || experiences[0];
-  const spotsLow = exp.spotsRemaining <= 5;
+  const { isSignedIn, fan } = useClerkAuth();
+  const { tier } = useMembership();
+  const queryClient = useQueryClient();
+
+  const {
+    data: exp,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["club-experience", club?.slug, experienceId],
+    queryFn: () => fetchClubExperience(club?.slug ?? "rangers", experienceId ?? ""),
+    enabled: !!club?.slug && !!experienceId,
+  });
+
+  const reserveMutation = useMutation({
+    mutationFn: () =>
+      reserveExperience(club?.slug ?? "rangers", experienceId ?? "", {
+        membershipTier: tier,
+        name: fan?.name ?? undefined,
+      }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["club-experience", club?.slug, experienceId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["club-experiences", club?.slug],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["club-experiences", club?.slug, "more"],
+        }),
+      ]);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(
+        "Reserva confirmada",
+        `Tu reserva para "${exp?.title}" ha sido registrada. Recibirás un email de confirmación.`,
+        [{ text: "OK", onPress: () => router.back() }],
+      );
+    },
+    onError: (mutationError) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : "No fue posible registrar tu reserva.";
+
+      if (message.includes("silver or gold membership")) {
+        Alert.alert(
+          "Exclusivo socios",
+          "Necesitas membresía Silver o Gold para reservar esta experiencia.",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Ver membresías", onPress: () => router.push("/upgrade-membership") },
+          ],
+        );
+        return;
+      }
+
+      if (message.toLowerCase().includes("sold out")) {
+        Alert.alert("Cupos agotados", "Esta experiencia ya no tiene cupos disponibles.");
+        return;
+      }
+
+      Alert.alert("No fue posible reservar", message);
+    },
+  });
 
   const handleReserve = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(
-      'Reserva confirmada',
-      `Tu reserva para "${exp.title}" ha sido registrada. Recibirás un email de confirmación.`,
-      [{ text: 'OK', onPress: () => router.back() }]
-    );
+    if (!exp || reserveMutation.isPending || exp.spotsRemaining <= 0) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      Alert.alert(
+        "Inicia sesión",
+        "Debes iniciar sesión para reservar esta experiencia.",
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Ir a login", onPress: () => router.push("/(auth)/login") },
+        ],
+      );
+      return;
+    }
+
+    if (exp.membersOnly && tier === "fan") {
+      Alert.alert(
+        "Exclusivo socios",
+        "Necesitas membresía Silver o Gold para reservar esta experiencia.",
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Ver membresías", onPress: () => router.push("/upgrade-membership") },
+        ],
+      );
+      return;
+    }
+
+    reserveMutation.mutate();
   };
+
+  if (isLoading || !exp) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="close" size={24} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Experiencia</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.loadingState}>
+          {error ? (
+            <>
+              <Ionicons name="alert-circle-outline" size={40} color={Colors.textTertiary} />
+              <Text style={styles.loadingTitle}>No fue posible cargar la experiencia</Text>
+              <Text style={styles.loadingText}>Intenta nuevamente en unos minutos.</Text>
+            </>
+          ) : (
+            <>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingText}>Cargando experiencia...</Text>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  }
+
+  const spotsLow = exp.spotsRemaining <= 5;
+  const soldOut = exp.spotsRemaining <= 0;
 
   return (
     <View style={styles.container}>
@@ -117,17 +238,29 @@ export default function ExperienceDetailScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + (Platform.OS === "web" ? 34 : 16) }]}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: insets.bottom + (Platform.OS === "web" ? 34 : 16) },
+        ]}
+      >
         <View style={styles.footerPrice}>
           <Text style={styles.footerLabel}>Precio</Text>
           <Text style={styles.footerAmount}>{formatCLP(exp.price)}</Text>
         </View>
         <Pressable
           onPress={handleReserve}
-          style={({ pressed }) => [styles.reserveBtn, { opacity: pressed ? 0.9 : 1 }]}
+          disabled={soldOut || reserveMutation.isPending}
+          style={({ pressed }) => [
+            styles.reserveBtn,
+            (soldOut || reserveMutation.isPending) && styles.reserveBtnDisabled,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
         >
           <Ionicons name="bookmark" size={18} color={Colors.text} />
-          <Text style={styles.reserveBtnText}>Reservar</Text>
+          <Text style={styles.reserveBtnText}>
+            {soldOut ? "Agotado" : reserveMutation.isPending ? "Reservando..." : "Reservar"}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -137,9 +270,9 @@ export default function ExperienceDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
@@ -148,54 +281,73 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 16,
     color: Colors.text,
   },
   scrollContent: { paddingHorizontal: 16, paddingTop: 8 },
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingHorizontal: 24,
+  },
+  loadingTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.text,
+    textAlign: "center",
+  },
+  loadingText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: "center",
+  },
   heroArea: {
     height: 180,
     backgroundColor: Colors.surface,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
   },
   content: {},
   badges: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 14,
   },
   memberBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.gold + '15',
+    backgroundColor: Colors.gold + "15",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   memberBadgeText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 12,
     color: Colors.gold,
   },
   spotsBadge: {
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.primary + "15",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   spotsBadgeLow: {
-    backgroundColor: Colors.warning + '15',
+    backgroundColor: Colors.warning + "15",
   },
   spotsBadgeText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 12,
     color: Colors.primary,
   },
@@ -203,13 +355,13 @@ const styles = StyleSheet.create({
     color: Colors.warning,
   },
   expTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: "Inter_700Bold",
     fontSize: 24,
     color: Colors.text,
     marginBottom: 12,
   },
   expDesc: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 22,
@@ -222,8 +374,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
@@ -231,12 +383,12 @@ const styles = StyleSheet.create({
   },
   detailContent: { flex: 1 },
   detailLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
     fontSize: 11,
     color: Colors.textTertiary,
   },
   detailValue: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 14,
     color: Colors.text,
   },
@@ -244,19 +396,19 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: Colors.surfaceHighlight,
     borderRadius: 3,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   capacityFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 3,
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 16,
     backgroundColor: Colors.background,
@@ -266,26 +418,29 @@ const styles = StyleSheet.create({
   },
   footerPrice: { flex: 1 },
   footerLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
     fontSize: 12,
     color: Colors.textSecondary,
   },
   footerAmount: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: "Inter_700Bold",
     fontSize: 20,
     color: Colors.text,
   },
   reserveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     backgroundColor: Colors.primary,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 28,
   },
+  reserveBtnDisabled: {
+    backgroundColor: Colors.surfaceHighlight,
+  },
   reserveBtnText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 15,
     color: Colors.text,
   },
