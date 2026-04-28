@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // ── Club ────────────────────────────────────────────────────────
 export const ClubSchema = z.object({
@@ -29,7 +29,9 @@ export const TicketTypeSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
-  price: z.union([z.number(), z.string()]).transform((v) => (typeof v === 'string' ? parseFloat(v) : v)),
+  price: z
+    .union([z.number(), z.string()])
+    .transform((v) => (typeof v === "string" ? parseFloat(v) : v)),
   capacity: z.number().optional(),
   sold: z.number().optional(),
 });
@@ -60,7 +62,9 @@ export const BackendProductSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
-  price: z.union([z.number(), z.string()]).transform((v) => (typeof v === 'string' ? parseFloat(v) : v)),
+  price: z
+    .union([z.number(), z.string()])
+    .transform((v) => (typeof v === "string" ? parseFloat(v) : v)),
   imageUrl: z.string().nullable().optional(),
   imageUrls: z.array(z.string()).optional().default([]),
   stock: z.number().optional(),
@@ -73,6 +77,50 @@ export const ClubWithRelationsSchema = ClubSchema.extend({
   products: z.array(BackendProductSchema).optional().default([]),
 });
 export type ClubWithRelations = z.infer<typeof ClubWithRelationsSchema>;
+
+export const NewsCategorySchema = z.enum([
+  "resultado",
+  "fichaje",
+  "institucional",
+  "cantera",
+  "comunidad",
+]);
+export type NewsCategory = z.infer<typeof NewsCategorySchema>;
+
+export const NewsArticleSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  body: z.string(),
+  category: NewsCategorySchema,
+  imageUrl: z.string().nullable().optional(),
+  publishedAt: z.string().nullable().optional(),
+  author: z.string().nullable().optional(),
+});
+export type NewsArticle = z.infer<typeof NewsArticleSchema>;
+
+export const NewsListSchema = z.object({
+  items: z.array(NewsArticleSchema),
+  nextCursor: z.string().nullable(),
+});
+export type NewsList = z.infer<typeof NewsListSchema>;
+
+export const SquadPlayerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  number: z.number(),
+  position: z.enum(["GK", "DEF", "MID", "FWD"]),
+  role: z.string(),
+});
+export type SquadPlayer = z.infer<typeof SquadPlayerSchema>;
+
+export const ClubSquadSchema = z.object({
+  name: z.string(),
+  coach: z.string(),
+  startingEleven: z.array(SquadPlayerSchema),
+  substitutes: z.array(SquadPlayerSchema),
+});
+export type ClubSquad = z.infer<typeof ClubSquadSchema>;
 
 // ── Fan ─────────────────────────────────────────────────────────
 export const FanSchema = z.object({
@@ -178,6 +226,62 @@ export const NotificationPrefsSchema = z.object({
 });
 export type NotificationPrefs = z.infer<typeof NotificationPrefsSchema>;
 
+export const BenefitCategorySchema = z.enum([
+  "COMIDA",
+  "CAFE",
+  "DEPORTE",
+  "ENTRETENIMIENTO",
+  "SALUD",
+]);
+export type BenefitCategory = z.infer<typeof BenefitCategorySchema>;
+
+export const BenefitTierSchema = z.enum(["fan", "silver", "gold"]);
+export type BenefitTier = z.infer<typeof BenefitTierSchema>;
+
+export const BenefitSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  category: BenefitCategorySchema,
+  discount: z.string(),
+  partner: z.string(),
+  location: z.string().nullable().optional(),
+  membersOnly: z.boolean(),
+  requiredTier: BenefitTierSchema,
+  expirationDate: z.string().nullable().optional(),
+  image: z.string(),
+});
+export type Benefit = z.infer<typeof BenefitSchema>;
+
+// ── Experiences ────────────────────────────────────────────────
+export const ExperienceSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  date: z.string(),
+  time: z.string(),
+  timeLabel: z.string().optional(),
+  location: z.string(),
+  spotsTotal: z.number(),
+  spotsRemaining: z.number(),
+  price: z
+    .union([z.number(), z.string()])
+    .transform((v) => (typeof v === "string" ? parseFloat(v) : v)),
+  currency: z.string(),
+  membersOnly: z.boolean(),
+  image: z.string().nullable().optional(),
+  visualKey: z.string().nullable().optional(),
+});
+export type AppExperience = z.infer<typeof ExperienceSchema>;
+
+export const ExperienceReservationSchema = z.object({
+  reservationId: z.string(),
+  status: z.string(),
+  experienceId: z.string(),
+  spotsRemaining: z.number(),
+});
+export type ExperienceReservation = z.infer<typeof ExperienceReservationSchema>;
+
 // ── Seatmap / availability (for match-tickets) ────────────────────
 export const SeatSchema = z.object({
   id: z.string(),
@@ -192,14 +296,40 @@ export const SeatSchema = z.object({
 export type Seat = z.infer<typeof SeatSchema>;
 
 export const SeatmapResponseSchema = z.object({
-  viewBox: z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() }).optional(),
-  zones: z.array(z.object({ key: z.string(), name: z.string(), color: z.string().optional() })).optional().default([]),
+  viewBox: z
+    .object({
+      x: z.number(),
+      y: z.number(),
+      width: z.number(),
+      height: z.number(),
+    })
+    .optional(),
+  zones: z
+    .array(
+      z.object({
+        key: z.string(),
+        name: z.string(),
+        color: z.string().optional(),
+      }),
+    )
+    .optional()
+    .default([]),
   seats: z.array(SeatSchema),
-  zoneTicketTypes: z.array(z.object({
-    zoneKey: z.string(),
-    ticketTypeId: z.string(),
-    ticketType: z.object({ id: z.string(), name: z.string(), description: z.string().nullable().optional(), price: z.number() }),
-  })).optional().default([]),
+  zoneTicketTypes: z
+    .array(
+      z.object({
+        zoneKey: z.string(),
+        ticketTypeId: z.string(),
+        ticketType: z.object({
+          id: z.string(),
+          name: z.string(),
+          description: z.string().nullable().optional(),
+          price: z.number(),
+        }),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 export type SeatmapResponse = z.infer<typeof SeatmapResponseSchema>;
 
