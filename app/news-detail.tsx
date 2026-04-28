@@ -6,47 +6,47 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
-import { getMockNews, type NewsArticle } from "@/lib/mock-data";
+import { fetchClubNewsArticle } from "@/lib/api";
+import { NEWS_CATEGORY_ICONS, NEWS_CATEGORY_LABELS, formatFullNewsDate } from "@/lib/news";
+import type { NewsArticle } from "@/lib/schemas";
 
-const CATEGORY_LABELS: Record<NewsArticle["category"], string> = {
-  resultado: "Resultado",
-  fichaje: "Fichaje",
-  institucional: "Institucional",
-  cantera: "Cantera",
-  comunidad: "Comunidad",
-};
-
-const CATEGORY_ICONS: Record<NewsArticle["category"], string> = {
-  resultado: "football",
-  fichaje: "person-add",
-  institucional: "megaphone",
-  cantera: "school",
-  comunidad: "people",
-};
-
-function formatFullDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-  const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-  return `${days[date.getDay()]} ${date.getDate()} de ${months[date.getMonth()]}, ${date.getFullYear()}`;
+function findCachedArticle(
+  queryClient: ReturnType<typeof useQueryClient>,
+  slug: string | undefined,
+  articleId: string | undefined,
+): NewsArticle | undefined {
+  if (!slug || !articleId) return undefined;
+  const cachedQueries = queryClient.getQueriesData<{ items?: NewsArticle[] }>({
+    queryKey: ["club-news", slug],
+  });
+  for (const [, data] of cachedQueries) {
+    const match = data?.items?.find((item) => item.id === articleId);
+    if (match) return match;
+  }
+  return undefined;
 }
 
 export default function NewsDetailScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { newsId } = useLocalSearchParams<{ newsId: string }>();
-  const { theme } = useClub();
+  const { club, theme } = useClub();
+  const queryClient = useQueryClient();
   const colors = theme.colors;
 
-  const allNews = getMockNews();
-  const article = allNews.find((n) => n.id === newsId) ?? allNews[0];
-  const categoryLabel = CATEGORY_LABELS[article.category];
-  const categoryIcon = CATEGORY_ICONS[article.category];
+  const { data: article, isLoading, isError } = useQuery({
+    queryKey: ["club-news", club?.slug, "detail", newsId],
+    queryFn: () => fetchClubNewsArticle(club!.slug, newsId),
+    enabled: !!club?.slug && !!newsId,
+    initialData: () => findCachedArticle(queryClient, club?.slug, newsId),
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -65,35 +65,58 @@ export default function NewsDetailScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.categoryBadge, { backgroundColor: colors.primary + "15" }]}>
-          <Ionicons name={categoryIcon as any} size={14} color={colors.primary} />
-          <Text style={[styles.categoryText, { color: colors.primary }]}>{categoryLabel}</Text>
-        </View>
-
-        <Text style={[styles.title, { color: colors.text }]}>{article.title}</Text>
-
-        <View style={styles.metaRow}>
-          {article.author ? (
-            <View style={styles.metaItem}>
-              <Ionicons name="person-outline" size={13} color={colors.textTertiary} />
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>{article.author}</Text>
-            </View>
-          ) : null}
-          <View style={styles.metaItem}>
-            <Ionicons name="calendar-outline" size={13} color={colors.textTertiary} />
-            <Text style={[styles.metaText, { color: colors.textSecondary }]}>{formatFullDate(article.publishedAt)}</Text>
+        {isLoading ? (
+          <View style={styles.stateBox}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={[styles.stateText, { color: colors.textSecondary }]}>Cargando noticia...</Text>
           </View>
-        </View>
+        ) : isError || !article ? (
+          <View style={styles.stateBox}>
+            <Ionicons name="alert-circle-outline" size={24} color={colors.textTertiary} />
+            <Text style={[styles.stateTitle, { color: colors.text }]}>Noticia no disponible</Text>
+            <Text style={[styles.stateText, { color: colors.textSecondary }]}>
+              Esta noticia no existe o ya no está publicada para este club.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <View style={[styles.categoryBadge, { backgroundColor: colors.primary + "15" }]}>
+              <Ionicons name={NEWS_CATEGORY_ICONS[article.category] as any} size={14} color={colors.primary} />
+              <Text style={[styles.categoryText, { color: colors.primary }]}>
+                {NEWS_CATEGORY_LABELS[article.category]}
+              </Text>
+            </View>
 
-        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+            <Text style={[styles.title, { color: colors.text }]}>{article.title}</Text>
 
-        <Text style={[styles.summary, { color: colors.text }]}>{article.summary}</Text>
+            <View style={styles.metaRow}>
+              {article.author ? (
+                <View style={styles.metaItem}>
+                  <Ionicons name="person-outline" size={13} color={colors.textTertiary} />
+                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>{article.author}</Text>
+                </View>
+              ) : null}
+              {article.publishedAt ? (
+                <View style={styles.metaItem}>
+                  <Ionicons name="calendar-outline" size={13} color={colors.textTertiary} />
+                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                    {formatFullNewsDate(article.publishedAt)}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
 
-        {article.body.split("\n\n").map((paragraph, i) => (
-          <Text key={i} style={[styles.bodyParagraph, { color: colors.textSecondary }]}>
-            {paragraph}
-          </Text>
-        ))}
+            <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+
+            <Text style={[styles.summary, { color: colors.text }]}>{article.summary}</Text>
+
+            {article.body.split("\n\n").map((paragraph, i) => (
+              <Text key={i} style={[styles.bodyParagraph, { color: colors.textSecondary }]}>
+                {paragraph}
+              </Text>
+            ))}
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -156,6 +179,20 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginBottom: 20,
+  },
+  stateBox: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 40,
+  },
+  stateTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+  },
+  stateText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    textAlign: "center",
   },
   summary: {
     fontFamily: "Inter_600SemiBold",

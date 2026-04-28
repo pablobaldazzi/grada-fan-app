@@ -609,10 +609,86 @@ const MOCK_BENEFITS_CONCEPCION: Benefit[] = [
   },
 ];
 
+const MOCK_BENEFITS_UNION_ESPANOLA: Benefit[] = [
+  {
+    id: 'ben_ue_001',
+    title: '20% en Restaurant El Hispano',
+    description: 'Descuento exclusivo para socios en paella, tapas y todos los platos del menu. Valido de lunes a jueves.',
+    category: 'COMIDA',
+    discount: '20%',
+    partner: 'El Hispano',
+    location: 'Av. Independencia 2820, Independencia',
+    membersOnly: true,
+    requiredTier: 'gold',
+    image: 'food',
+  },
+  {
+    id: 'ben_ue_002',
+    title: 'Cafe cortado gratis en Cafe Santa Laura',
+    description: 'Un cafe cortado gratis por dia para socios activos de los Hispanos.',
+    category: 'CAFE',
+    discount: 'Gratis',
+    partner: 'Cafe Santa Laura',
+    location: 'Santa Laura 1350, Independencia',
+    membersOnly: true,
+    requiredTier: 'gold',
+    image: 'coffee',
+  },
+  {
+    id: 'ben_ue_003',
+    title: '15% en CYHStore',
+    description: 'Descuento en toda la tienda oficial de Unión Española. Camisetas, accesorios y más.',
+    category: 'DEPORTE',
+    discount: '15%',
+    partner: 'CYHStore',
+    location: 'Tienda online cyhstore.cl',
+    membersOnly: false,
+    requiredTier: 'fan',
+    image: 'sport',
+  },
+  {
+    id: 'ben_ue_004',
+    title: '2x1 en Cineplanet',
+    description: 'Dos entradas por el precio de una, todos los miercoles.',
+    category: 'ENTRETENIMIENTO',
+    discount: '2x1',
+    partner: 'Cineplanet',
+    location: 'Mall Plaza Norte, Huechuraba',
+    membersOnly: true,
+    requiredTier: 'silver',
+    image: 'cinema',
+  },
+  {
+    id: 'ben_ue_005',
+    title: '10% en Farmacia Ahumada',
+    description: 'Descuento en productos seleccionados de farmacia para socios hispanos.',
+    category: 'SALUD',
+    discount: '10%',
+    partner: 'Farmacia Ahumada',
+    location: 'Av. Independencia 2066, Independencia',
+    membersOnly: false,
+    requiredTier: 'fan',
+    image: 'health',
+  },
+  {
+    id: 'ben_ue_006',
+    title: 'Almuerzo ejecutivo $5.490',
+    description: 'Menu ejecutivo a precio especial de lunes a viernes para socios hispanos.',
+    category: 'COMIDA',
+    discount: '$5.490',
+    partner: 'La Esquina de Santa Laura',
+    location: 'Julio Martínez Prádanos 1380, Independencia',
+    membersOnly: true,
+    requiredTier: 'silver',
+    image: 'food',
+  },
+];
+
 const BENEFITS_BY_CLUB: Record<string, Benefit[]> = {
   'puerto-montt': MOCK_BENEFITS_PUERTO_MONTT,
   palestino: MOCK_BENEFITS_PALESTINO,
   'deportes-concepcion': MOCK_BENEFITS_CONCEPCION,
+  'union-espanola': MOCK_BENEFITS_UNION_ESPANOLA,
 };
 
 export function getMockBenefits(slug: string): Benefit[] {
@@ -855,10 +931,70 @@ const MOCK_EXPERIENCES_CONCEPCION: Experience[] = [
   },
 ];
 
+const MOCK_EXPERIENCES_UNION_ESPANOLA: Experience[] = [
+  {
+    id: 'exp_ue_001',
+    title: 'Meet & Greet con el Plantel',
+    description: 'Conoce a los jugadores hispanos. Incluye foto grupal, autografos y recorrido por el camarín de Santa Laura.',
+    date: '2026-04-05',
+    time: '11:00',
+    location: 'Estadio Santa Laura, Independencia',
+    spotsTotal: 30,
+    spotsRemaining: 8,
+    price: 15000,
+    currency: 'CLP',
+    membersOnly: true,
+    image: 'meetgreet',
+  },
+  {
+    id: 'exp_ue_002',
+    title: 'Tour Estadio Santa Laura',
+    description: 'Recorre La Catedral: vestuarios, sala de prensa, palcos, zona mixta y pisada de cancha. Con guia historico del club fundado en 1897.',
+    date: '2026-04-12',
+    time: '10:00',
+    location: 'Estadio Santa Laura – Universidad SEK, Independencia',
+    spotsTotal: 40,
+    spotsRemaining: 18,
+    price: 10000,
+    currency: 'CLP',
+    membersOnly: false,
+    image: 'tour',
+  },
+  {
+    id: 'exp_ue_003',
+    title: 'Clinica de Futbol Infantil Hispana',
+    description: 'Jornada deportiva para niños de 6 a 12 años con entrenadores del club. Cada participante recibe una camiseta roja hispana.',
+    date: '2026-04-19',
+    time: '09:00',
+    location: 'Complejo Deportivo Santa Laura, Independencia',
+    spotsTotal: 50,
+    spotsRemaining: 30,
+    price: 5000,
+    currency: 'CLP',
+    membersOnly: false,
+    image: 'clinic',
+  },
+  {
+    id: 'exp_ue_004',
+    title: 'Cena con Leyendas Hispanas',
+    description: 'Cena exclusiva con ex jugadores historicos del club. Revive la épica de la Libertadores 1975 y los 7 títulos nacionales. Incluye cena completa y sorteos.',
+    date: '2026-04-26',
+    time: '20:00',
+    location: 'Centro Español de Santiago, Av. Libertador Bernardo O\'Higgins',
+    spotsTotal: 60,
+    spotsRemaining: 5,
+    price: 50000,
+    currency: 'CLP',
+    membersOnly: true,
+    image: 'dinner',
+  },
+];
+
 const EXPERIENCES_BY_CLUB: Record<string, Experience[]> = {
   'puerto-montt': MOCK_EXPERIENCES_PUERTO_MONTT,
   palestino: MOCK_EXPERIENCES_PALESTINO,
   'deportes-concepcion': MOCK_EXPERIENCES_CONCEPCION,
+  'union-espanola': MOCK_EXPERIENCES_UNION_ESPANOLA,
 };
 
 export function getMockExperiences(slug: string): Experience[] {
@@ -941,8 +1077,80 @@ const PUERTO_MONTT_NEWS: NewsArticle[] = [
   },
 ];
 
-export function getMockNews(): NewsArticle[] {
-  return PUERTO_MONTT_NEWS;
+const UNION_ESPANOLA_NEWS: NewsArticle[] = [
+  {
+    id: 'news_ue_001',
+    title: 'Unión Española vence 2-1 a Puerto Montt y suma su segunda victoria',
+    summary: 'Los Hispanos se impusieron en Santa Laura y escalan posiciones en la tabla de la Primera B.',
+    body: 'Unión Española logró una importante victoria por 2-1 ante Deportes Puerto Montt en el Estadio Santa Laura, en partido válido por la fecha 5 de la Primera B 2026.\n\nEl equipo dirigido por Gonzalo Villagra mostró un juego ofensivo desde el inicio. A los 28\', Patricio Rubio abrió el marcador con un cabezazo certero tras un centro preciso desde la derecha.\n\nPuerto Montt logró empatar a los 55\' con un gol de contra, pero la respuesta hispana fue inmediata. A los 63\', Ulises Ojeda selló la victoria con un remate de media distancia que se coló por el ángulo.\n\nCon este resultado, Unión Española llega a 6 puntos y busca encadenar victorias para pelear por el ascenso de vuelta a Primera División.',
+    category: 'resultado',
+    publishedAt: '2026-03-21T22:45:00',
+    author: 'Prensa UE',
+  },
+  {
+    id: 'news_ue_002',
+    title: 'Patricio Rubio: "Vine a devolver a Unión Española donde merece"',
+    summary: 'El experimentado delantero habló sobre su llegada al club y los objetivos para la temporada.',
+    body: 'Patricio Rubio, el refuerzo estrella de Unión Española para la campaña de ascenso 2026, conversó en exclusiva sobre su llegada al club hispano.\n\n"Cuando me llamaron no lo dudé. Unión Española es un club grande, con una historia enorme, 7 títulos, una final de Libertadores. No puede estar en Primera B", señaló el delantero proveniente de Ñublense.\n\nRubio ya suma 2 goles en 5 partidos y se perfila como el goleador del equipo: "El grupo está muy comprometido. Sabemos que el objetivo es uno solo: ascender. Y vamos a dejarlo todo por esta camiseta roja".\n\nEl atacante también destacó el calor de la hinchada en Santa Laura: "La Catedral se llena y eso se siente en la cancha. Los hinchas son el jugador número 12".',
+    category: 'fichaje',
+    publishedAt: '2026-03-19T14:00:00',
+    author: 'Prensa UE',
+  },
+  {
+    id: 'news_ue_003',
+    title: 'Unión Española lanza campaña de socios "Volvemos Juntos"',
+    summary: 'El club presentó su plan de membresías con beneficios exclusivos para acompañar el camino de vuelta a Primera División.',
+    body: 'Unión Española presentó oficialmente su campaña de socios para la temporada 2026, bajo el lema "Volvemos Juntos", en una emotiva ceremonia en el Estadio Santa Laura.\n\nLa nueva estructura incluye tres niveles de membresía: Fan (gratuito), Silver y Gold, cada uno con beneficios que van desde descuentos en boletería hasta acceso preferencial y experiencias exclusivas con el plantel.\n\nEl presidente Francisco Ceresuela señaló: "Este club fue fundado en 1897 por inmigrantes españoles con un sueño. Hoy le pedimos a cada hincha que sea parte de este nuevo sueño: volver a Primera División. Juntos somos más fuertes".\n\nLos interesados pueden inscribirse desde la app oficial o en las oficinas del estadio Santa Laura.',
+    category: 'institucional',
+    publishedAt: '2026-03-17T10:00:00',
+    author: 'Comunicaciones UE',
+  },
+  {
+    id: 'news_ue_004',
+    title: 'Sub-17 hispana avanza a cuartos del torneo metropolitano',
+    summary: 'Los juveniles rojiblancos vencieron 2-0 a Barnechea y siguen invictos en el certamen.',
+    body: 'La selección Sub-17 de Unión Española consiguió una sólida victoria por 2-0 ante Barnechea, asegurando su lugar en los cuartos de final del Torneo Metropolitano de la categoría.\n\nLos goles fueron obra de Sebastián Flores y Diego Contreras, quienes mostraron un nivel destacado durante todo el encuentro en las canchas del complejo deportivo del club.\n\nEl coordinador de cantera expresó su satisfacción: "Estos chicos representan el futuro de Unión Española. La formación es fundamental para el club y estamos viendo frutos del trabajo de años".\n\nEl próximo rival se definirá esta semana.',
+    category: 'cantera',
+    publishedAt: '2026-03-15T18:30:00',
+    author: 'Cantera UE',
+  },
+  {
+    id: 'news_ue_005',
+    title: 'Jugadores hispanos visitaron hogar de ancianos en Independencia',
+    summary: 'Como parte del programa "La Furia Solidaria", el plantel compartió una jornada con adultos mayores de la comuna.',
+    body: 'Un grupo de jugadores del primer equipo de Unión Española visitó el Hogar de Ancianos San José en Independencia, como parte del programa social "La Furia Solidaria".\n\nLos futbolistas compartieron una tarde con los residentes, entregaron camisetas autografiadas y participaron de una merienda comunitaria. José Aja y Bruno Jáuregui lideraron la actividad.\n\n"Es importante estar cerca de nuestra comunidad. El barrio de Independencia es nuestra casa y queremos que la gente sienta que el club está presente no solo los días de partido", comentó el capitán del equipo.\n\nEl programa continuará con actividades en colegios y juntas de vecinos de la comuna.',
+    category: 'comunidad',
+    publishedAt: '2026-03-13T12:00:00',
+    author: 'Comunicaciones UE',
+  },
+  {
+    id: 'news_ue_006',
+    title: 'Caída ante Antofagasta complica el inicio de La Furia',
+    summary: 'Derrota 2-1 en el norte deja a Unión Española con un inicio irregular en la Primera B.',
+    body: 'Unión Española cayó 2-1 ante Deportes Antofagasta en el Estadio Regional de Antofagasta, sumando su tercera derrota en la Primera B 2026.\n\nEl equipo de Gonzalo Villagra abrió el marcador temprano a través de Ariel Uribe a los 15\', pero los locales dieron vuelta el resultado con goles a los 52\' y 78\'.\n\nEl técnico hispano analizó: "Nos faltó mantener la concentración en el segundo tiempo. Competimos bien los primeros 45 minutos pero nos costó sostener el ritmo en la altura".\n\nCon 3 puntos en 4 fechas, el panorama es complicado pero el plantel confía en revertir la situación: "Sabíamos que el inicio iba a ser difícil. Ahora viene una seguidilla de partidos en casa que tenemos que aprovechar", agregó Villagra.',
+    category: 'resultado',
+    publishedAt: '2026-03-15T21:00:00',
+    author: 'Prensa UE',
+  },
+  {
+    id: 'news_ue_007',
+    title: 'Nueva camiseta Marathon 2026 ya disponible en la tienda',
+    summary: 'Los Hispanos estrenaron indumentaria con su nuevo auspiciador técnico.',
+    body: 'Unión Española presentó oficialmente su nueva camiseta para la temporada 2026, fabricada por Marathon Sports, el nuevo auspiciador técnico del club.\n\nEl diseño principal es rojo con detalles en azul, manteniendo los colores históricos del club. La camiseta incorpora un homenaje sutil a los orígenes españoles del club con un detalle en el cuello.\n\nLos precios van desde $39.990 para la versión de hincha hasta $54.990 para la versión jugador. También se presentó la camiseta de visita en blanco con detalles rojos y azules.\n\n"Estamos orgullosos de vestir estos colores. La camiseta de Unión Española tiene una historia que nos trasciende", señaló el capitán en la presentación.\n\nLas camisetas están disponibles en la tienda oficial CYHStore y en el estadio Santa Laura.',
+    category: 'institucional',
+    publishedAt: '2026-03-10T09:00:00',
+    author: 'Comunicaciones UE',
+  },
+];
+
+const NEWS_BY_CLUB: Record<string, NewsArticle[]> = {
+  'puerto-montt': PUERTO_MONTT_NEWS,
+  'union-espanola': UNION_ESPANOLA_NEWS,
+};
+
+export function getMockNews(slug?: string): NewsArticle[] {
+  if (!slug) return [];
+  return NEWS_BY_CLUB[slug] ?? [];
 }
 
 const SQUAD_PUERTO_MONTT: SquadFormation = {
@@ -1040,10 +1248,35 @@ const SQUAD_PALESTINO: SquadFormation = {
   ],
 };
 
+const SQUAD_UNION_ESPANOLA: SquadFormation = {
+  name: '4-3-3',
+  coach: 'Gonzalo Villagra',
+  startingEleven: [
+    { id: 'sp_ue_01', name: 'M. Parra', number: 1, position: 'GK', role: 'Portero' },
+    { id: 'sp_ue_02', name: 'K. Contreras', number: 2, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_ue_03', name: 'J. Aja', number: 3, position: 'DEF', role: 'Central' },
+    { id: 'sp_ue_04', name: 'V. Vidal', number: 4, position: 'DEF', role: 'Central' },
+    { id: 'sp_ue_05', name: 'M. Ormeño', number: 6, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_ue_06', name: 'B. Jáuregui', number: 5, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_ue_07', name: 'A. Uribe', number: 8, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_ue_08', name: 'U. Ojeda', number: 10, position: 'MID', role: 'Mediocampista ofensivo' },
+    { id: 'sp_ue_09', name: 'W. Machado', number: 7, position: 'FWD', role: 'Extremo derecho' },
+    { id: 'sp_ue_10', name: 'P. Rubio', number: 9, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_ue_11', name: 'A. Vilches', number: 11, position: 'FWD', role: 'Extremo izquierdo' },
+  ],
+  substitutes: [
+    { id: 'sp_ue_12', name: 'E. Uribe', number: 12, position: 'GK', role: 'Portero' },
+    { id: 'sp_ue_13', name: 'J. Fierro', number: 25, position: 'GK', role: 'Portero' },
+    { id: 'sp_ue_14', name: 'M. Rodríguez', number: 13, position: 'GK', role: 'Portero' },
+    { id: 'sp_ue_15', name: 'M. Wassenne', number: 14, position: 'FWD', role: 'Delantero centro' },
+  ],
+};
+
 const SQUAD_BY_CLUB: Record<string, SquadFormation> = {
   'puerto-montt': SQUAD_PUERTO_MONTT,
   rangers: SQUAD_RANGERS,
   palestino: SQUAD_PALESTINO,
+  'union-espanola': SQUAD_UNION_ESPANOLA,
 };
 
 export function getMockSquad(slug: string): SquadFormation | null {

@@ -7,66 +7,127 @@ import {
   Pressable,
   Platform,
   Switch,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { useQuery } from "@tanstack/react-query";
 import { useClub } from "@/lib/contexts/ClubContext";
 import {
+  fetchClubBenefits,
+  fetchClubExperiences,
+  fetchClubNews,
+} from "@/lib/api";
+import {
   BENEFIT_CATEGORIES,
-  NEWS_CATEGORIES,
-  Benefit,
-  Experience,
-  NewsArticle,
   formatCLP,
   formatDate,
-  getMockBenefits,
-  getMockExperiences,
-  getMockNews,
   getBenefitTierLabel,
   getBenefitTierColor,
 } from "@/lib/mock-data";
-import { TIER_CONFIG } from "@/lib/membership";
+import {
+  NEWS_CATEGORIES,
+  NEWS_CATEGORY_ICONS,
+  NEWS_CATEGORY_LABELS,
+  NEWS_CATEGORY_MAP,
+  formatShortNewsDate,
+} from "@/lib/news";
+import type { AppExperience, Benefit, NewsArticle } from "@/lib/schemas";
 
 type MoreTab = "noticias" | "benefits" | "experiences";
 
-function BenefitCard({ benefit, colors }: { benefit: Benefit; colors: Record<string, string> }) {
+function BenefitCard({
+  benefit,
+  colors,
+}: {
+  benefit: Benefit;
+  colors: Record<string, string>;
+}) {
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.push({ pathname: "/benefit-detail", params: { benefitId: benefit.id } });
+        router.push({
+          pathname: "/benefit-detail",
+          params: { benefitId: benefit.id },
+        });
       }}
-      style={({ pressed }) => [styles.benefitCard, { opacity: pressed ? 0.9 : 1, backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+      style={({ pressed }) => [
+        styles.benefitCard,
+        {
+          opacity: pressed ? 0.9 : 1,
+          backgroundColor: colors.surface,
+          borderColor: colors.cardBorder,
+        },
+      ]}
     >
       <View style={styles.benefitLeft}>
-        <View style={[styles.discountBadge, { backgroundColor: colors.primary + "20" }]}>
-          <Text style={[styles.discountText, { color: colors.primary }]}>{benefit.discount}</Text>
+        <View
+          style={[
+            styles.discountBadge,
+            { backgroundColor: colors.primary + "20" },
+          ]}
+        >
+          <Text style={[styles.discountText, { color: colors.primary }]}>
+            {benefit.discount}
+          </Text>
         </View>
       </View>
       <View style={styles.benefitContent}>
         <View style={styles.benefitHeader}>
-          <Text style={[styles.benefitPartner, { color: colors.textTertiary }]}>{benefit.partner}</Text>
+          <Text style={[styles.benefitPartner, { color: colors.textTertiary }]}>
+            {benefit.partner}
+          </Text>
           {(() => {
             const tierColor = getBenefitTierColor(benefit.requiredTier);
-            const tierLabel = benefit.requiredTier === 'fan' ? 'Todos' : getBenefitTierLabel(benefit.requiredTier);
-            const iconName = benefit.requiredTier === 'gold' ? 'crown' : benefit.requiredTier === 'silver' ? 'medal' : 'account-group';
+            const tierLabel =
+              benefit.requiredTier === "fan"
+                ? "Todos"
+                : getBenefitTierLabel(benefit.requiredTier);
+            const iconName =
+              benefit.requiredTier === "gold"
+                ? "crown"
+                : benefit.requiredTier === "silver"
+                  ? "medal"
+                  : "account-group";
             return (
-              <View style={[styles.tierBadge, { backgroundColor: tierColor + '20' }]}>
-                <MaterialCommunityIcons name={iconName as any} size={10} color={tierColor} />
-                <Text style={[styles.tierBadgeText, { color: tierColor }]}>{tierLabel}</Text>
+              <View
+                style={[
+                  styles.tierBadge,
+                  { backgroundColor: tierColor + "20" },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name={iconName as any}
+                  size={10}
+                  color={tierColor}
+                />
+                <Text style={[styles.tierBadgeText, { color: tierColor }]}>
+                  {tierLabel}
+                </Text>
               </View>
             );
           })()}
         </View>
-        <Text style={[styles.benefitTitle, { color: colors.text }]} numberOfLines={2}>
+        <Text
+          style={[styles.benefitTitle, { color: colors.text }]}
+          numberOfLines={2}
+        >
           {benefit.title}
         </Text>
         {benefit.location && (
           <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={12} color={colors.textTertiary} />
-            <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
+            <Ionicons
+              name="location-outline"
+              size={12}
+              color={colors.textTertiary}
+            />
+            <Text
+              style={[styles.locationText, { color: colors.textSecondary }]}
+              numberOfLines={1}
+            >
               {benefit.location}
             </Text>
           </View>
@@ -77,29 +138,61 @@ function BenefitCard({ benefit, colors }: { benefit: Benefit; colors: Record<str
   );
 }
 
-function ExperienceCard({ experience, colors }: { experience: Experience; colors: Record<string, string> }) {
+function ExperienceCard({
+  experience,
+  colors,
+}: {
+  experience: AppExperience;
+  colors: Record<string, string>;
+}) {
   const spotsLow = experience.spotsRemaining <= 5;
 
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.push({ pathname: "/experience-detail", params: { experienceId: experience.id } });
+        router.push({
+          pathname: "/experience-detail",
+          params: { experienceId: experience.id },
+        });
       }}
-      style={({ pressed }) => [styles.expCard, { opacity: pressed ? 0.9 : 1, backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+      style={({ pressed }) => [
+        styles.expCard,
+        {
+          opacity: pressed ? 0.9 : 1,
+          backgroundColor: colors.surface,
+          borderColor: colors.cardBorder,
+        },
+      ]}
     >
-      <View style={[styles.expIconArea, { backgroundColor: colors.primary + "15" }]}>
-        <MaterialCommunityIcons name="star-four-points" size={28} color={colors.primary} />
+      <View
+        style={[styles.expIconArea, { backgroundColor: colors.primary + "15" }]}
+      >
+        <MaterialCommunityIcons
+          name="star-four-points"
+          size={28}
+          color={colors.primary}
+        />
       </View>
       <View style={styles.expContent}>
         <View style={styles.expHeaderRow}>
-          <Text style={[styles.expTitle, { color: colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.expTitle, { color: colors.text }]}
+            numberOfLines={1}
+          >
             {experience.title}
           </Text>
           {experience.membersOnly && (
-            <View style={[styles.tierBadge, { backgroundColor: colors.gold + '20' }]}>
+            <View
+              style={[
+                styles.tierBadge,
+                { backgroundColor: colors.gold + "20" },
+              ]}
+            >
               <Ionicons name="star" size={9} color={colors.gold} />
-              <Text style={[styles.tierBadgeText, { color: colors.gold }]}>Socios</Text>
+              <Text style={[styles.tierBadgeText, { color: colors.gold }]}>
+                Socios
+              </Text>
             </View>
           )}
         </View>
@@ -109,8 +202,16 @@ function ExperienceCard({ experience, colors }: { experience: Experience; colors
           </Text>
         </View>
         <View style={styles.expBottomRow}>
-          <Text style={[styles.expPrice, { color: colors.primary }]}>{formatCLP(experience.price)}</Text>
-          <Text style={[styles.expSpots, { color: colors.textTertiary }, spotsLow && styles.expSpotsLow]}>
+          <Text style={[styles.expPrice, { color: colors.primary }]}>
+            {formatCLP(experience.price)}
+          </Text>
+          <Text
+            style={[
+              styles.expSpots,
+              { color: colors.textTertiary },
+              spotsLow && styles.expSpotsLow,
+            ]}
+          >
             {experience.spotsRemaining} cupos
           </Text>
         </View>
@@ -119,67 +220,96 @@ function ExperienceCard({ experience, colors }: { experience: Experience; colors
   );
 }
 
-const NEWS_CATEGORY_MAP: Record<string, NewsArticle["category"]> = {
-  Resultados: "resultado",
-  Fichajes: "fichaje",
-  Institucional: "institucional",
-  Cantera: "cantera",
-  Comunidad: "comunidad",
-};
-
-const NEWS_CATEGORY_ICONS: Record<NewsArticle["category"], string> = {
-  resultado: "football",
-  fichaje: "person-add",
-  institucional: "megaphone",
-  cantera: "school",
-  comunidad: "people",
-};
-
-const NEWS_CATEGORY_LABELS: Record<NewsArticle["category"], string> = {
-  resultado: "Resultado",
-  fichaje: "Fichaje",
-  institucional: "Institucional",
-  cantera: "Cantera",
-  comunidad: "Comunidad",
-};
-
-function NewsCard({ article, colors }: { article: NewsArticle; colors: Record<string, string> }) {
+function NewsCard({
+  article,
+  colors,
+}: {
+  article: NewsArticle;
+  colors: Record<string, string>;
+}) {
   const icon = NEWS_CATEGORY_ICONS[article.category];
   const label = NEWS_CATEGORY_LABELS[article.category];
-  const date = new Date(article.publishedAt);
-  const timeStr = `${date.getDate()} ${["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][date.getMonth()]}`;
+  const timeStr = article.publishedAt
+    ? formatShortNewsDate(article.publishedAt)
+    : "";
 
   return (
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.push({ pathname: "/news-detail", params: { newsId: article.id } });
+        router.push({
+          pathname: "/news-detail",
+          params: { newsId: article.id },
+        });
       }}
-      style={({ pressed }) => [styles.newsCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder, opacity: pressed ? 0.85 : 1 }]}
+      style={({ pressed }) => [
+        styles.newsCard,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.cardBorder,
+          opacity: pressed ? 0.85 : 1,
+        },
+      ]}
     >
-      <View style={[styles.newsIconArea, { backgroundColor: colors.primary + "15" }]}>
+      <View
+        style={[
+          styles.newsIconArea,
+          { backgroundColor: colors.primary + "15" },
+        ]}
+      >
         <Ionicons name={icon as any} size={22} color={colors.primary} />
       </View>
       <View style={styles.newsContent}>
         <View style={styles.newsHeaderRow}>
-          <Text style={[styles.newsCategoryLabel, { color: colors.primary }]}>{label}</Text>
-          <Text style={[styles.newsDate, { color: colors.textTertiary }]}>{timeStr}</Text>
+          <Text style={[styles.newsCategoryLabel, { color: colors.primary }]}>
+            {label}
+          </Text>
+          <Text style={[styles.newsDate, { color: colors.textTertiary }]}>
+            {timeStr}
+          </Text>
         </View>
-        <Text style={[styles.newsTitle, { color: colors.text }]} numberOfLines={2}>{article.title}</Text>
-        <Text style={[styles.newsSummary, { color: colors.textSecondary }]} numberOfLines={2}>{article.summary}</Text>
+        <Text
+          style={[styles.newsTitle, { color: colors.text }]}
+          numberOfLines={2}
+        >
+          {article.title}
+        </Text>
+        <Text
+          style={[styles.newsSummary, { color: colors.textSecondary }]}
+          numberOfLines={2}
+        >
+          {article.summary}
+        </Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
     </Pressable>
   );
 }
 
-function NewsSection({ colors }: { colors: Record<string, string> }) {
-  const [selectedCat, setSelectedCat] = useState("Todas");
-  const allNews = getMockNews();
+function NewsSection({
+  colors,
+  clubSlug,
+}: {
+  colors: Record<string, string>;
+  clubSlug?: string;
+}) {
+  const [selectedCat, setSelectedCat] =
+    useState<(typeof NEWS_CATEGORIES)[number]>("Todas");
+  const { data } = useQuery({
+    queryKey: ["club-news", clubSlug, "more"],
+    queryFn: () => fetchClubNews(clubSlug!),
+    enabled: !!clubSlug,
+  });
+  const allNews = data?.items ?? [];
 
-  const filtered = selectedCat === "Todas"
-    ? allNews
-    : allNews.filter((n) => n.category === NEWS_CATEGORY_MAP[selectedCat]);
+  const filtered =
+    selectedCat === "Todas"
+      ? allNews
+      : allNews.filter(
+          (n) =>
+            n.category ===
+            NEWS_CATEGORY_MAP[selectedCat as keyof typeof NEWS_CATEGORY_MAP],
+        );
 
   return (
     <>
@@ -198,13 +328,20 @@ function NewsSection({ colors }: { colors: Record<string, string> }) {
             }}
             style={[
               styles.chip,
-              { backgroundColor: selectedCat === cat ? colors.primary : colors.surfaceHighlight },
+              {
+                backgroundColor:
+                  selectedCat === cat
+                    ? colors.primary
+                    : colors.surfaceHighlight,
+              },
             ]}
           >
             <Text
               style={[
                 styles.chipText,
-                { color: selectedCat === cat ? "#FFFFFF" : colors.textSecondary },
+                {
+                  color: selectedCat === cat ? "#FFFFFF" : colors.textSecondary,
+                },
               ]}
             >
               {cat}
@@ -212,9 +349,53 @@ function NewsSection({ colors }: { colors: Record<string, string> }) {
           </Pressable>
         ))}
       </ScrollView>
-      {filtered.map((article) => (
-        <NewsCard key={article.id} article={article} colors={colors} />
-      ))}
+      {allNews.length === 0 ? (
+        <View
+          style={[
+            styles.emptyState,
+            { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+          ]}
+        >
+          <Ionicons
+            name="newspaper-outline"
+            size={24}
+            color={colors.textTertiary}
+          />
+          <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+            Aun no hay noticias
+          </Text>
+          <Text
+            style={[styles.emptyStateText, { color: colors.textSecondary }]}
+          >
+            Este club todavia no ha publicado noticias.
+          </Text>
+        </View>
+      ) : filtered.length === 0 ? (
+        <View
+          style={[
+            styles.emptyState,
+            { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+          ]}
+        >
+          <Ionicons
+            name="filter-outline"
+            size={24}
+            color={colors.textTertiary}
+          />
+          <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+            Sin resultados
+          </Text>
+          <Text
+            style={[styles.emptyStateText, { color: colors.textSecondary }]}
+          >
+            No hay noticias para esta categoria.
+          </Text>
+        </View>
+      ) : (
+        filtered.map((article) => (
+          <NewsCard key={article.id} article={article} colors={colors} />
+        ))
+      )}
     </>
   );
 }
@@ -222,10 +403,20 @@ function NewsSection({ colors }: { colors: Record<string, string> }) {
 function BenefitsSection({ colors }: { colors: Record<string, string> }) {
   const [selectedCat, setSelectedCat] = useState("TODO");
   const { club } = useClub();
-  const benefits = getMockBenefits(club?.slug ?? 'rangers');
+  const {
+    data: benefits = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["club-benefits", club?.slug],
+    queryFn: () => fetchClubBenefits(club!.slug),
+    enabled: !!club?.slug,
+  });
 
   const filtered =
-    selectedCat === "TODO" ? benefits : benefits.filter((b) => b.category === selectedCat);
+    selectedCat === "TODO"
+      ? benefits
+      : benefits.filter((b) => b.category === selectedCat);
 
   return (
     <>
@@ -244,13 +435,21 @@ function BenefitsSection({ colors }: { colors: Record<string, string> }) {
             }}
             style={[
               styles.chip,
-              { backgroundColor: selectedCat === cat ? colors.primary : colors.surfaceHighlight },
+              {
+                backgroundColor:
+                  selectedCat === cat
+                    ? colors.primary
+                    : colors.surfaceHighlight,
+              },
             ]}
           >
             <Text
               style={[
                 styles.chipText,
-                { color: selectedCat === cat ? colors.text : colors.textSecondary },
+                {
+                  color:
+                    selectedCat === cat ? colors.text : colors.textSecondary,
+                },
               ]}
             >
               {cat}
@@ -258,9 +457,57 @@ function BenefitsSection({ colors }: { colors: Record<string, string> }) {
           </Pressable>
         ))}
       </ScrollView>
-      {filtered.map((benefit) => (
-        <BenefitCard key={benefit.id} benefit={benefit} colors={colors} />
-      ))}
+      {isLoading ? (
+        <View
+          style={[
+            styles.emptyState,
+            { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+          ]}
+        >
+          <ActivityIndicator color={colors.primary} />
+          <Text
+            style={[styles.emptyStateText, { color: colors.textSecondary }]}
+          >
+            Cargando beneficios...
+          </Text>
+        </View>
+      ) : error ? (
+        <View
+          style={[
+            styles.emptyState,
+            { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+          ]}
+        >
+          <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+            No disponible
+          </Text>
+          <Text
+            style={[styles.emptyStateText, { color: colors.textSecondary }]}
+          >
+            No se pudieron cargar los beneficios.
+          </Text>
+        </View>
+      ) : filtered.length === 0 ? (
+        <View
+          style={[
+            styles.emptyState,
+            { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+          ]}
+        >
+          <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+            Sin beneficios
+          </Text>
+          <Text
+            style={[styles.emptyStateText, { color: colors.textSecondary }]}
+          >
+            Este club todavia no tiene beneficios en esta categoria.
+          </Text>
+        </View>
+      ) : (
+        filtered.map((benefit) => (
+          <BenefitCard key={benefit.id} benefit={benefit} colors={colors} />
+        ))
+      )}
     </>
   );
 }
@@ -269,13 +516,28 @@ export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const params = useLocalSearchParams<{ tab?: string }>();
-  const [activeTab, setActiveTab] = useState<MoreTab>((params.tab as MoreTab) || "noticias");
+  const [activeTab, setActiveTab] = useState<MoreTab>(
+    (params.tab as MoreTab) || "noticias",
+  );
   const { club, theme, themeMode, setThemeMode } = useClub();
   const colors = theme.colors;
-  const experiences = getMockExperiences(club?.slug ?? 'rangers');
+  const {
+    data: experiences = [],
+    isLoading: experiencesLoading,
+    error: experiencesError,
+  } = useQuery({
+    queryKey: ["club-experiences", club?.slug, "more"],
+    queryFn: () => fetchClubExperiences(club?.slug ?? "rangers"),
+    enabled: !!club?.slug,
+  });
 
   useEffect(() => {
-    if (params.tab && (params.tab === "noticias" || params.tab === "benefits" || params.tab === "experiences")) {
+    if (
+      params.tab &&
+      (params.tab === "noticias" ||
+        params.tab === "benefits" ||
+        params.tab === "experiences")
+    ) {
       setActiveTab(params.tab);
     }
   }, [params.tab]);
@@ -293,32 +555,53 @@ export default function MoreScreen() {
       >
         <Text style={[styles.title, { color: colors.text }]}>Mas</Text>
 
-        <View style={[styles.demoRow, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+        <View
+          style={[
+            styles.demoRow,
+            { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+          ]}
+        >
           <View style={styles.settingRow}>
-            <Ionicons name={themeMode === 'dark' ? 'moon' : 'sunny'} size={18} color={colors.primary} />
-            <Text style={[styles.demoLabel, { color: colors.text }]}>Modo claro</Text>
+            <Ionicons
+              name={themeMode === "dark" ? "moon" : "sunny"}
+              size={18}
+              color={colors.primary}
+            />
+            <Text style={[styles.demoLabel, { color: colors.text }]}>
+              Modo claro
+            </Text>
           </View>
           <Switch
-            value={themeMode === 'light'}
-            onValueChange={(val) => setThemeMode(val ? 'light' : 'dark')}
-            trackColor={{ false: colors.surfaceHighlight, true: colors.primary + "80" }}
-            thumbColor={themeMode === 'light' ? colors.primary : colors.textTertiary}
+            value={themeMode === "light"}
+            onValueChange={(val) => setThemeMode(val ? "light" : "dark")}
+            trackColor={{
+              false: colors.surfaceHighlight,
+              true: colors.primary + "80",
+            }}
+            thumbColor={
+              themeMode === "light" ? colors.primary : colors.textTertiary
+            }
           />
         </View>
 
         <View style={[styles.tabBar, { backgroundColor: colors.surface }]}>
-          {([
-            { key: "noticias", label: "Noticias", icon: "newspaper" },
-            { key: "benefits", label: "Beneficios", icon: "pricetag" },
-            { key: "experiences", label: "Experiencias", icon: "sparkles" },
-          ] as const).map((t) => (
+          {(
+            [
+              { key: "noticias", label: "Noticias", icon: "newspaper" },
+              { key: "benefits", label: "Beneficios", icon: "pricetag" },
+              { key: "experiences", label: "Experiencias", icon: "sparkles" },
+            ] as const
+          ).map((t) => (
             <Pressable
               key={t.key}
               onPress={() => {
                 Haptics.selectionAsync();
                 setActiveTab(t.key);
               }}
-              style={[styles.tabBtn, activeTab === t.key && { backgroundColor: colors.primary }]}
+              style={[
+                styles.tabBtn,
+                activeTab === t.key && { backgroundColor: colors.primary },
+              ]}
             >
               <Ionicons
                 name={t.icon}
@@ -328,7 +611,10 @@ export default function MoreScreen() {
               <Text
                 style={[
                   styles.tabBtnText,
-                  { color: activeTab === t.key ? "#FFFFFF" : colors.textSecondary },
+                  {
+                    color:
+                      activeTab === t.key ? "#FFFFFF" : colors.textSecondary,
+                  },
                 ]}
               >
                 {t.label}
@@ -337,12 +623,85 @@ export default function MoreScreen() {
           ))}
         </View>
 
-        {activeTab === "noticias" && <NewsSection colors={colors} />}
+        {activeTab === "noticias" && (
+          <NewsSection colors={colors} clubSlug={club?.slug} />
+        )}
 
         {activeTab === "benefits" && <BenefitsSection colors={colors} />}
 
-        {activeTab === "experiences" &&
-          experiences.map((exp) => <ExperienceCard key={exp.id} experience={exp} colors={colors} />)}
+        {activeTab === "experiences" && experiencesLoading ? (
+          <View
+            style={[
+              styles.emptyState,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.cardBorder,
+              },
+            ]}
+          >
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+              Cargando experiencias
+            </Text>
+            <Text
+              style={[styles.emptyStateText, { color: colors.textSecondary }]}
+            >
+              Estamos trayendo las proximas reservas del club.
+            </Text>
+          </View>
+        ) : experiencesError ? (
+          <View
+            style={[
+              styles.emptyState,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.cardBorder,
+              },
+            ]}
+          >
+            <Ionicons
+              name="alert-circle-outline"
+              size={24}
+              color={colors.textTertiary}
+            />
+            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+              No fue posible cargar
+            </Text>
+            <Text
+              style={[styles.emptyStateText, { color: colors.textSecondary }]}
+            >
+              Intenta nuevamente en unos minutos.
+            </Text>
+          </View>
+        ) : experiences.length === 0 ? (
+          <View
+            style={[
+              styles.emptyState,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.cardBorder,
+              },
+            ]}
+          >
+            <Ionicons
+              name="sparkles-outline"
+              size={24}
+              color={colors.textTertiary}
+            />
+            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+              Sin experiencias
+            </Text>
+            <Text
+              style={[styles.emptyStateText, { color: colors.textSecondary }]}
+            >
+              Este club aun no publica experiencias.
+            </Text>
+          </View>
+        ) : (
+          experiences.map((exp) => (
+            <ExperienceCard key={exp.id} experience={exp} colors={colors} />
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -480,7 +839,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   expContent: { flex: 1 },
-  expHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  expHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
   expTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 14,
@@ -491,7 +855,12 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 12,
   },
-  expBottomRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
+  expBottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
   expPrice: {
     fontFamily: "Inter_700Bold",
     fontSize: 14,
@@ -501,7 +870,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   expSpotsLow: {
-    color: '#F39C12',
+    color: "#F39C12",
   },
   newsCard: {
     flexDirection: "row",
@@ -545,5 +914,23 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 12,
     lineHeight: 17,
+  },
+  emptyState: {
+    alignItems: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  emptyStateTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+  },
+  emptyStateText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: "center",
   },
 });

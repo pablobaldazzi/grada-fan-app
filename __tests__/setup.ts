@@ -65,6 +65,12 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: any) => children ?? null,
 }));
 
+jest.mock('expo-constants', () => ({
+  expoConfig: {
+    extra: {},
+  },
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => undefined),
@@ -80,6 +86,7 @@ jest.mock('expo-router', () => {
       replace: jest.fn(),
       back: jest.fn(),
     },
+    useLocalSearchParams: jest.fn(() => ({})),
     Redirect: ({ href }: any) => null,
   };
 });

@@ -18,11 +18,11 @@ import { useClub } from "@/lib/contexts/ClubContext";
 import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { darkenHex } from "@/lib/theme";
 import { getClubLogo, parseMatchTeams, getTeamSlug } from "@/lib/club-logos";
-import { fetchNotifications } from "@/lib/api";
+import { fetchClubNews, fetchNotifications } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/format";
-import { getMockNews, type NewsArticle } from "@/lib/mock-data";
+import { NEWS_CATEGORY_ICONS } from "@/lib/news";
 import { getStandingsForClub, type StandingEntry } from "@/lib/standings-data";
-import type { BackendEvent } from "@/lib/schemas";
+import type { BackendEvent, NewsArticle } from "@/lib/schemas";
 
 function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEvent; colors: Record<string, string>; clubSlug?: string; isLight?: boolean }) {
   const eventDate = new Date(event.datetime);
@@ -31,6 +31,8 @@ function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEve
   const teams = parseMatchTeams(event.name);
   const homeSlug = teams ? getTeamSlug(teams.home) : clubSlug;
   const awaySlug = teams ? getTeamSlug(teams.away) : undefined;
+  const homeLogo = event.homeTeam?.logoUrl ? { uri: event.homeTeam.logoUrl } : getClubLogo(homeSlug);
+  const awayLogo = event.awayTeam?.logoUrl ? { uri: event.awayTeam.logoUrl } : getClubLogo(awaySlug);
   const gradientEnd = darkenHex(colors.primary, isLight ? 0.4 : 0.85);
 
   return (
@@ -51,7 +53,7 @@ function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEve
         <View style={styles.matchTeams}>
           <View style={styles.teamCol}>
             <View style={styles.teamBadge}>
-              <Image source={getClubLogo(homeSlug)} style={styles.teamBadgeImg} resizeMode="contain" />
+              <Image source={homeLogo} style={styles.teamBadgeImg} resizeMode="contain" />
             </View>
             <Text style={[styles.teamName, { color: '#FFFFFF' }]} numberOfLines={2}>{teams?.home ?? event.name}</Text>
           </View>
@@ -61,7 +63,7 @@ function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEve
           </View>
           <View style={styles.teamCol}>
             <View style={styles.teamBadge}>
-              <Image source={getClubLogo(awaySlug)} style={styles.teamBadgeImg} resizeMode="contain" />
+              <Image source={awayLogo} style={styles.teamBadgeImg} resizeMode="contain" />
             </View>
             <Text style={[styles.teamName, { color: '#FFFFFF' }]} numberOfLines={2}>{teams?.away ?? ''}</Text>
           </View>
@@ -92,16 +94,8 @@ function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEve
   );
 }
 
-const NEWS_ICON_MAP: Record<string, string> = {
-  resultado: 'football',
-  fichaje: 'person-add',
-  institucional: 'megaphone',
-  cantera: 'school',
-  comunidad: 'people',
-};
-
 function NewsPreviewCard({ article, colors }: { article: NewsArticle; colors: Record<string, string> }) {
-  const icon = NEWS_ICON_MAP[article.category] ?? 'newspaper';
+  const icon = NEWS_CATEGORY_ICONS[article.category] ?? 'newspaper';
 
   return (
     <Pressable
@@ -207,9 +201,14 @@ export default function HomeScreen() {
     queryFn: () => fetchNotifications({ take: 10 }),
     enabled: isSignedIn,
   });
+  const { data: newsData } = useQuery({
+    queryKey: ['club-news', club?.slug, 'home'],
+    queryFn: () => fetchClubNews(club!.slug, { limit: 3 }),
+    enabled: !!club?.slug,
+  });
   const unreadCount = notifData?.unreadCount ?? 0;
 
-  const recentNews = getMockNews().slice(0, 3);
+  const recentNews = newsData?.items ?? [];
   const leagueData = getStandingsForClub(club?.slug);
 
   const firstEvent = club?.events?.[0];
@@ -298,17 +297,19 @@ export default function HomeScreen() {
           <StandingsTable colors={colors} clubSlug={club?.slug} />
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Noticias</Text>
-            <Pressable onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "noticias" } })}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>Ver todos</Text>
-            </Pressable>
+        {recentNews.length > 0 ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Noticias</Text>
+              <Pressable onPress={() => router.push({ pathname: "/(tabs)/more", params: { tab: "noticias" } })}>
+                <Text style={[styles.seeAll, { color: colors.primary }]}>Ver todos</Text>
+              </Pressable>
+            </View>
+            {recentNews.map((article) => (
+              <NewsPreviewCard key={article.id} article={article} colors={colors} />
+            ))}
           </View>
-          {recentNews.map((article) => (
-            <NewsPreviewCard key={article.id} article={article} colors={colors} />
-          ))}
-        </View>
+        ) : null}
       </ScrollView>
     </View>
   );
