@@ -6,26 +6,73 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  ActivityIndicator,
 } from "react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/colors";
-import { getMockBenefits, getBenefitTierLabel, getBenefitTierColor } from "@/lib/mock-data";
+import { fetchClubBenefit } from "@/lib/api";
+import { getBenefitTierLabel, getBenefitTierColor } from "@/lib/mock-data";
 import { TIER_CONFIG } from "@/lib/membership";
 import { useClub } from "@/lib/contexts/ClubContext";
+import type { Benefit } from "@/lib/schemas";
 
 export default function BenefitDetailScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { benefitId } = useLocalSearchParams<{ benefitId: string }>();
   const { club } = useClub();
-  const benefits = getMockBenefits(club?.slug ?? 'rangers');
-  const benefit = benefits.find(b => b.id === benefitId) || benefits[0];
+  const queryClient = useQueryClient();
+  const cachedBenefits =
+    queryClient.getQueryData<Benefit[]>(["club-benefits", club?.slug]) ?? [];
+  const {
+    data: benefit,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["club-benefit", club?.slug, benefitId],
+    queryFn: () => fetchClubBenefit(club!.slug, benefitId!),
+    enabled: !!club?.slug && !!benefitId,
+    initialData: cachedBenefits.find((item) => item.id === benefitId),
+  });
+
+  if (isLoading && !benefit) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!benefit || error) {
+    return (
+      <View style={styles.container}>
+        <View
+          style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}
+        >
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="close" size={24} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Beneficio</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={[styles.infoCard, { margin: 16 }]}>
+          <Text style={styles.benefitTitle}>Beneficio no encontrado</Text>
+          <Text style={styles.description}>
+            No pudimos cargar este beneficio.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>
+      <View
+        style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}
+      >
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="close" size={24} color={Colors.text} />
         </Pressable>
@@ -49,14 +96,31 @@ export default function BenefitDetailScreen() {
 
           {(() => {
             const tierColor = getBenefitTierColor(benefit.requiredTier);
-            const tierLabel = benefit.requiredTier === 'fan'
-              ? 'Disponible para todos'
-              : `Exclusivo ${getBenefitTierLabel(benefit.requiredTier)}`;
-            const iconName = benefit.requiredTier === 'gold' ? 'crown' : benefit.requiredTier === 'silver' ? 'medal' : 'account-group';
+            const tierLabel =
+              benefit.requiredTier === "fan"
+                ? "Disponible para todos"
+                : `Exclusivo ${getBenefitTierLabel(benefit.requiredTier)}`;
+            const iconName =
+              benefit.requiredTier === "gold"
+                ? "crown"
+                : benefit.requiredTier === "silver"
+                  ? "medal"
+                  : "account-group";
             return (
-              <View style={[styles.memberBadge, { backgroundColor: tierColor + '15' }]}>
-                <MaterialCommunityIcons name={iconName as any} size={14} color={tierColor} />
-                <Text style={[styles.memberBadgeText, { color: tierColor }]}>{tierLabel}</Text>
+              <View
+                style={[
+                  styles.memberBadge,
+                  { backgroundColor: tierColor + "15" },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name={iconName as any}
+                  size={14}
+                  color={tierColor}
+                />
+                <Text style={[styles.memberBadgeText, { color: tierColor }]}>
+                  {tierLabel}
+                </Text>
               </View>
             );
           })()}
@@ -80,11 +144,23 @@ export default function BenefitDetailScreen() {
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="ribbon" size={18} color={getBenefitTierColor(benefit.requiredTier)} />
+            <Ionicons
+              name="ribbon"
+              size={18}
+              color={getBenefitTierColor(benefit.requiredTier)}
+            />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>Membresía requerida</Text>
-              <Text style={[styles.detailValue, { color: getBenefitTierColor(benefit.requiredTier) }]}>
-                {benefit.requiredTier === 'fan' ? 'Todos los usuarios' : TIER_CONFIG[benefit.requiredTier].displayName + ' o superior'}
+              <Text
+                style={[
+                  styles.detailValue,
+                  { color: getBenefitTierColor(benefit.requiredTier) },
+                ]}
+              >
+                {benefit.requiredTier === "fan"
+                  ? "Todos los usuarios"
+                  : TIER_CONFIG[benefit.requiredTier].displayName +
+                    " o superior"}
               </Text>
             </View>
           </View>
@@ -103,16 +179,32 @@ export default function BenefitDetailScreen() {
         <View style={styles.rulesCard}>
           <Text style={styles.rulesTitle}>Condiciones de uso</Text>
           <View style={styles.ruleItem}>
-            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-            <Text style={styles.ruleText}>Presenta tu carnet de socio {club?.name ?? 'del club'}</Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={16}
+              color={Colors.success}
+            />
+            <Text style={styles.ruleText}>
+              Presenta tu carnet de socio {club?.name ?? "del club"}
+            </Text>
           </View>
           <View style={styles.ruleItem}>
-            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+            <Ionicons
+              name="checkmark-circle"
+              size={16}
+              color={Colors.success}
+            />
             <Text style={styles.ruleText}>Valido en el local indicado</Text>
           </View>
           <View style={styles.ruleItem}>
-            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-            <Text style={styles.ruleText}>No acumulable con otras promociones</Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={16}
+              color={Colors.success}
+            />
+            <Text style={styles.ruleText}>
+              No acumulable con otras promociones
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -122,10 +214,14 @@ export default function BenefitDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
@@ -134,35 +230,35 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 16,
     color: Colors.text,
   },
   scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
   discountArea: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   bigDiscount: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.primary + "20",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
   },
   bigDiscountText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: "Inter_700Bold",
     fontSize: 28,
     color: Colors.primary,
   },
   discountLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 11,
     color: Colors.textTertiary,
     letterSpacing: 2,
@@ -174,35 +270,35 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   benefitTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: "Inter_700Bold",
     fontSize: 20,
     color: Colors.text,
     marginBottom: 12,
   },
   memberBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginBottom: 16,
   },
   memberBadgeText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 12,
   },
   description: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: 20,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     paddingVertical: 12,
     borderTopWidth: 1,
@@ -210,12 +306,12 @@ const styles = StyleSheet.create({
   },
   detailContent: { flex: 1 },
   detailLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
     fontSize: 11,
     color: Colors.textTertiary,
   },
   detailValue: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 14,
     color: Colors.text,
   },
@@ -225,19 +321,19 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   rulesTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
     fontSize: 16,
     color: Colors.text,
     marginBottom: 14,
   },
   ruleItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginBottom: 10,
   },
   ruleText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
     fontSize: 13,
     color: Colors.textSecondary,
     flex: 1,
