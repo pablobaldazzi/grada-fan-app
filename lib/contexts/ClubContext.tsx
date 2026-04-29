@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchClubBySlug } from '../api';
 import { config } from '../config';
+import { getDevClubSlugOverride } from '../dev-club-override';
 import { buildTheme, defaultTheme, type Theme, type ThemeMode } from '../theme';
 import type { ClubWithRelations } from '../schemas';
 
@@ -9,6 +10,7 @@ const THEME_MODE_KEY = 'grada_theme_mode';
 
 interface ClubContextValue {
   club: ClubWithRelations | null;
+  clubSlug: string;
   theme: Theme;
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
@@ -19,6 +21,7 @@ interface ClubContextValue {
 
 const ClubContext = createContext<ClubContextValue>({
   club: null,
+  clubSlug: config.clubSlug,
   theme: defaultTheme,
   themeMode: 'dark',
   setThemeMode: () => {},
@@ -29,6 +32,7 @@ const ClubContext = createContext<ClubContextValue>({
 
 export function ClubProvider({ children }: { children: React.ReactNode }) {
   const [club, setClub] = useState<ClubWithRelations | null>(null);
+  const [clubSlug, setClubSlug] = useState<string>(config.clubSlug);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
@@ -44,11 +48,14 @@ export function ClubProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(THEME_MODE_KEY, mode).catch(() => {});
   }, []);
 
-  const load = async (attempt = 1): Promise<void> => {
+  const load = useCallback(async (attempt = 1): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchClubBySlug(config.clubSlug);
+      const override = await getDevClubSlugOverride();
+      const resolvedSlug = override || config.clubSlug;
+      setClubSlug(resolvedSlug);
+      const data = await fetchClubBySlug(resolvedSlug);
       setClub(data);
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string; response?: { status?: number } };
@@ -63,7 +70,7 @@ export function ClubProvider({ children }: { children: React.ReactNode }) {
 
       const msg =
         err?.response?.status === 404
-          ? `Club not found (slug: "${config.clubSlug}"). Check EXPO_PUBLIC_CLUB_SLUG.`
+          ? `Club not found (slug: "${clubSlug}"). Check EXPO_PUBLIC_CLUB_SLUG or your dev override.`
           : isServerError
             ? 'Server is starting up. Please tap "Try Again" in a moment.'
             : isTimeout
@@ -75,16 +82,17 @@ export function ClubProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clubSlug]);
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const theme = buildTheme(club, themeMode);
 
   return (
-    <ClubContext.Provider value={{ club, theme, themeMode, setThemeMode, loading, error, retry: load }}>
+    <ClubContext.Provider value={{ club, clubSlug, theme, themeMode, setThemeMode, loading, error, retry: load }}>
       {children}
     </ClubContext.Provider>
   );

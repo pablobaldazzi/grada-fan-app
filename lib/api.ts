@@ -21,6 +21,7 @@ import {
 import {
   AuthResponseSchema,
   BenefitSchema,
+  ClubStandingsSchema,
   ClubWithRelationsSchema,
   ClubSquadSchema,
   FanProfileSchema,
@@ -37,6 +38,7 @@ import {
   SeatHoldResponseSchema,
   type AuthResponse,
   type Benefit,
+  type ClubStandings,
   type ClubWithRelations,
   type ClubSquad,
   type FanProfile,
@@ -68,6 +70,24 @@ export async function fetchClubBySlug(
     throw new Error(`Club not found (slug: "${slug}")`);
   }
   return ClubWithRelationsSchema.parse(data);
+}
+
+export async function fetchClubStandings(
+  slug: string,
+): Promise<ClubStandings | null> {
+  if (getUseMockData()) {
+    return null;
+  }
+  try {
+    const { data } = await http.get(`/public/clubs/${slug}/standings`);
+    if (!data || typeof data !== "object") return null;
+    return ClubStandingsSchema.parse(data);
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 export async function fetchClubNews(

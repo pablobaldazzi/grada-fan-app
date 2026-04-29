@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DevClubSwitcher } from "@/components/DevClubSwitcher";
 import { PushNotificationHandler } from "@/components/PushNotificationHandler";
 import { loadStoredMembershipTier } from "@/lib/membership";
 import { queryClient } from "@/lib/query-client";
@@ -51,6 +52,7 @@ function RootLayoutNav() {
   return (
     <>
       <PushNotificationHandler />
+      {__DEV__ ? <DevClubSwitcher /> : null}
       <Stack
         screenOptions={{
           headerShown: false,

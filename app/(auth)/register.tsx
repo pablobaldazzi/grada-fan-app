@@ -217,16 +217,18 @@ function ClerkRegisterScreen() {
     setError('');
     try {
       const redirectUrl = Linking.createURL('');
-      const { createdSessionId, signUp: su } = await signUp.create({
+      const oauthResult = (await signUp.create({
         strategy: 'oauth_google',
         redirectUrl,
-      });
+      })) as any;
 
-      const externalUrl = (su as any)?.verifications?.externalAccount?.externalVerificationRedirectURL;
+      const externalUrl =
+        oauthResult?.verifications?.externalAccount?.externalVerificationRedirectURL;
       if (externalUrl) {
         await WebBrowser.openAuthSessionAsync(externalUrl.toString(), redirectUrl);
       }
 
+      const createdSessionId = oauthResult?.createdSessionId;
       if (createdSessionId) {
         await setActive({ session: createdSessionId });
         router.replace('/(tabs)');
@@ -309,6 +311,13 @@ function ClerkRegisterScreen() {
               onChangeText={setPassword}
               secureTextEntry
             />
+
+            {/* Mount point for Clerk's bot-protection captcha on web. nativeID
+                becomes id="clerk-captcha" via react-native-web; no-op on native
+                (where Clerk Bot Protection must be disabled in the dashboard
+                anyway, since it requires a DOM). */}
+            <View nativeID="clerk-captcha" />
+
             <Button title="Crear cuenta" onPress={handleRegister} loading={loading} style={{ marginTop: 8 }} />
 
             <View style={styles.divider}>

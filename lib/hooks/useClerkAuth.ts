@@ -51,10 +51,10 @@ function useClerkAuthDemo() {
       profileComplete: true,
       missingFields: [],
       email: p.email,
-      firstName: p.firstName,
-      lastName: p.lastName,
-      phone: p.phone,
-      nationalId: p.nationalId,
+      firstName: p.firstName ?? null,
+      lastName: p.lastName ?? null,
+      phone: p.phone ?? null,
+      nationalId: p.nationalId ?? null,
     });
     setLoading(false);
   }, [clubId]);

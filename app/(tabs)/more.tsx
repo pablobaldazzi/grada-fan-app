@@ -629,79 +629,80 @@ export default function MoreScreen() {
 
         {activeTab === "benefits" && <BenefitsSection colors={colors} />}
 
-        {activeTab === "experiences" && experiencesLoading ? (
-          <View
-            style={[
-              styles.emptyState,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.cardBorder,
-              },
-            ]}
-          >
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-              Cargando experiencias
-            </Text>
-            <Text
-              style={[styles.emptyStateText, { color: colors.textSecondary }]}
+        {activeTab === "experiences" &&
+          (experiencesLoading ? (
+            <View
+              style={[
+                styles.emptyState,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.cardBorder,
+                },
+              ]}
             >
-              Estamos trayendo las proximas reservas del club.
-            </Text>
-          </View>
-        ) : experiencesError ? (
-          <View
-            style={[
-              styles.emptyState,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.cardBorder,
-              },
-            ]}
-          >
-            <Ionicons
-              name="alert-circle-outline"
-              size={24}
-              color={colors.textTertiary}
-            />
-            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-              No fue posible cargar
-            </Text>
-            <Text
-              style={[styles.emptyStateText, { color: colors.textSecondary }]}
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+                Cargando experiencias
+              </Text>
+              <Text
+                style={[styles.emptyStateText, { color: colors.textSecondary }]}
+              >
+                Estamos trayendo las proximas reservas del club.
+              </Text>
+            </View>
+          ) : experiencesError ? (
+            <View
+              style={[
+                styles.emptyState,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.cardBorder,
+                },
+              ]}
             >
-              Intenta nuevamente en unos minutos.
-            </Text>
-          </View>
-        ) : experiences.length === 0 ? (
-          <View
-            style={[
-              styles.emptyState,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.cardBorder,
-              },
-            ]}
-          >
-            <Ionicons
-              name="sparkles-outline"
-              size={24}
-              color={colors.textTertiary}
-            />
-            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-              Sin experiencias
-            </Text>
-            <Text
-              style={[styles.emptyStateText, { color: colors.textSecondary }]}
+              <Ionicons
+                name="alert-circle-outline"
+                size={24}
+                color={colors.textTertiary}
+              />
+              <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+                No fue posible cargar
+              </Text>
+              <Text
+                style={[styles.emptyStateText, { color: colors.textSecondary }]}
+              >
+                Intenta nuevamente en unos minutos.
+              </Text>
+            </View>
+          ) : experiences.length === 0 ? (
+            <View
+              style={[
+                styles.emptyState,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.cardBorder,
+                },
+              ]}
             >
-              Este club aun no publica experiencias.
-            </Text>
-          </View>
-        ) : (
-          experiences.map((exp) => (
-            <ExperienceCard key={exp.id} experience={exp} colors={colors} />
-          ))
-        )}
+              <Ionicons
+                name="sparkles-outline"
+                size={24}
+                color={colors.textTertiary}
+              />
+              <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+                Sin experiencias
+              </Text>
+              <Text
+                style={[styles.emptyStateText, { color: colors.textSecondary }]}
+              >
+                Este club aun no publica experiencias.
+              </Text>
+            </View>
+          ) : (
+            experiences.map((exp) => (
+              <ExperienceCard key={exp.id} experience={exp} colors={colors} />
+            ))
+          ))}
       </ScrollView>
     </View>
   );

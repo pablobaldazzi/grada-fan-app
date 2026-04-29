@@ -18,11 +18,15 @@ import { useClub } from "@/lib/contexts/ClubContext";
 import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
 import { darkenHex } from "@/lib/theme";
 import { getClubLogo, parseMatchTeams, getTeamSlug } from "@/lib/club-logos";
-import { fetchClubNews, fetchNotifications } from "@/lib/api";
+import { fetchClubNews, fetchClubStandings, fetchNotifications } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/format";
 import { NEWS_CATEGORY_ICONS } from "@/lib/news";
-import { getStandingsForClub, type StandingEntry } from "@/lib/standings-data";
-import type { BackendEvent, NewsArticle } from "@/lib/schemas";
+import type {
+  BackendEvent,
+  ClubStandings,
+  NewsArticle,
+  StandingEntry,
+} from "@/lib/schemas";
 
 function NextMatchCard({ event, colors, clubSlug, isLight }: { event: BackendEvent; colors: Record<string, string>; clubSlug?: string; isLight?: boolean }) {
   const eventDate = new Date(event.datetime);
@@ -134,16 +138,23 @@ function QuickAction({ icon, label, onPress, colors }: { icon: any; label: strin
   );
 }
 
-function StandingsRow({ entry, colors, isHighlighted }: { entry: StandingEntry; colors: Record<string, string>; isHighlighted: boolean }) {
-  const logoSource = entry.logoUrl ? { uri: entry.logoUrl } : getClubLogo(entry.slug);
-  const rowBg = isHighlighted ? colors.primary + '15' : 'transparent';
-  const borderLeft = isHighlighted ? colors.primary : 'transparent';
+function StandingsRow({ entry, colors }: { entry: StandingEntry; colors: Record<string, string> }) {
+  const logoSource = entry.logoUrl ? { uri: entry.logoUrl } : getClubLogo(entry.teamSlug);
+  const rowBg = entry.isHighlighted ? colors.primary + '15' : 'transparent';
+  const borderLeft = entry.isHighlighted ? colors.primary : 'transparent';
 
   return (
     <View style={[standingsStyles.row, { backgroundColor: rowBg, borderLeftColor: borderLeft }]}>
       <Text style={[standingsStyles.pos, { color: colors.textSecondary }]}>{entry.position}</Text>
       <Image source={logoSource} style={standingsStyles.logo} resizeMode="contain" />
-      <Text style={[standingsStyles.teamName, { color: colors.text }, isHighlighted && { fontFamily: 'Inter_700Bold' }]} numberOfLines={1}>
+      <Text
+        style={[
+          standingsStyles.teamName,
+          { color: colors.text },
+          entry.isHighlighted && { fontFamily: 'Inter_700Bold' },
+        ]}
+        numberOfLines={1}
+      >
         {entry.shortName}
       </Text>
       <Text style={[standingsStyles.stat, { color: colors.textSecondary }]}>{entry.played}</Text>
@@ -158,8 +169,15 @@ function StandingsRow({ entry, colors, isHighlighted }: { entry: StandingEntry; 
   );
 }
 
-function StandingsTable({ colors, clubSlug }: { colors: Record<string, string>; clubSlug?: string }) {
-  const league = getStandingsForClub(clubSlug);
+function StandingsTable({ standings, colors }: { standings: ClubStandings; colors: Record<string, string> }) {
+  const updatedAt = new Date(standings.league.updatedAt);
+  const formattedUpdatedAt = isNaN(updatedAt.getTime())
+    ? null
+    : updatedAt.toLocaleDateString('es-CL', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
 
   return (
     <View style={[standingsStyles.container, { backgroundColor: colors.surface }]}>
@@ -174,17 +192,16 @@ function StandingsTable({ colors, clubSlug }: { colors: Record<string, string>; 
         <Text style={[standingsStyles.headerStatGd, { color: colors.textTertiary }]}>DG</Text>
         <Text style={[standingsStyles.headerPts, { color: colors.textTertiary }]}>PTS</Text>
       </View>
-      {league.entries.map((entry) => (
-        <StandingsRow
-          key={entry.slug}
-          entry={entry}
-          colors={colors}
-          isHighlighted={entry.slug === clubSlug}
-        />
+      {standings.entries.map((entry) => (
+        <StandingsRow key={entry.teamId} entry={entry} colors={colors} />
       ))}
-      <Text style={[standingsStyles.updated, { color: colors.textTertiary }]}>
-        Actualizado: {league.updatedAt} · {league.matchday}
-      </Text>
+      {(formattedUpdatedAt || standings.league.matchdayLabel) && (
+        <Text style={[standingsStyles.updated, { color: colors.textTertiary }]}>
+          {formattedUpdatedAt ? `Actualizado: ${formattedUpdatedAt}` : ''}
+          {formattedUpdatedAt && standings.league.matchdayLabel ? ' · ' : ''}
+          {standings.league.matchdayLabel ?? ''}
+        </Text>
+      )}
     </View>
   );
 }
@@ -208,8 +225,15 @@ export default function HomeScreen() {
   });
   const unreadCount = notifData?.unreadCount ?? 0;
 
+  const { data: standingsData } = useQuery({
+    queryKey: ['club-standings', club?.slug],
+    queryFn: () => fetchClubStandings(club!.slug),
+    enabled: !!club?.slug,
+    // 404 means "no league configured" — return null and don't retry needlessly.
+    retry: false,
+  });
+
   const recentNews = newsData?.items ?? [];
-  const leagueData = getStandingsForClub(club?.slug);
 
   const firstEvent = club?.events?.[0];
   const moreEvents = club?.events?.slice(1, 4) ?? [];
@@ -289,13 +313,15 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Posiciones</Text>
-            <Text style={[styles.seeAll, { color: colors.primary }]}>{leagueData.leagueName}</Text>
+        {standingsData && standingsData.entries.length > 0 ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Posiciones</Text>
+              <Text style={[styles.seeAll, { color: colors.primary }]}>{standingsData.league.name}</Text>
+            </View>
+            <StandingsTable standings={standingsData} colors={colors} />
           </View>
-          <StandingsTable colors={colors} clubSlug={club?.slug} />
-        </View>
+        ) : null}
 
         {recentNews.length > 0 ? (
           <View style={styles.section}>

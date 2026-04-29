@@ -78,6 +78,39 @@ export const ClubWithRelationsSchema = ClubSchema.extend({
 });
 export type ClubWithRelations = z.infer<typeof ClubWithRelationsSchema>;
 
+// ── Club standings (GET /public/clubs/:slug/standings) ───────────
+export const StandingEntrySchema = z.object({
+  position: z.number(),
+  teamId: z.string(),
+  teamSlug: z.string(),
+  teamName: z.string(),
+  shortName: z.string(),
+  logoUrl: z.string().nullable().optional(),
+  played: z.number(),
+  won: z.number(),
+  drawn: z.number(),
+  lost: z.number(),
+  goalsFor: z.number(),
+  goalsAgainst: z.number(),
+  goalDifference: z.number(),
+  points: z.number(),
+  isHighlighted: z.boolean(),
+});
+export type StandingEntry = z.infer<typeof StandingEntrySchema>;
+
+export const ClubStandingsSchema = z.object({
+  league: z.object({
+    id: z.string(),
+    name: z.string(),
+    season: z.string(),
+    matchdayLabel: z.string().nullable().optional(),
+    standingsMode: z.enum(["MANUAL", "COMPUTED"]).optional(),
+    updatedAt: z.string(),
+  }),
+  entries: z.array(StandingEntrySchema),
+});
+export type ClubStandings = z.infer<typeof ClubStandingsSchema>;
+
 export const NewsCategorySchema = z.enum([
   "resultado",
   "fichaje",
