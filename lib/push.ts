@@ -1,8 +1,25 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import Constants from 'expo-constants';
 import { registerDeviceToken, unregisterDeviceToken } from './api';
+import { config } from './config';
+
+function isDevRuntime(): boolean {
+  return typeof __DEV__ !== 'undefined' && __DEV__;
+}
+
+function logMissingProjectId(): void {
+  const message =
+    'Push notifications are enabled, but no EAS project id is configured. ' +
+    'Set extra.eas.projectId through EXPO_PUBLIC_EAS_PROJECT_ID or EAS_PROJECT_ID.';
+
+  if (isDevRuntime()) {
+    console.warn(message);
+    return;
+  }
+
+  console.error(message);
+}
 
 /**
  * Request permission and get the Expo push token.
@@ -29,9 +46,14 @@ export async function getExpoPushToken(): Promise<string | null> {
       });
     }
 
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const projectId = config.easProjectId;
+    if (!projectId) {
+      logMissingProjectId();
+      return null;
+    }
+
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: projectId ?? undefined,
+      projectId,
     });
     return tokenData.data;
   } catch {

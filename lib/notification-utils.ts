@@ -8,5 +8,5 @@ export const BACKEND_TYPE_TO_DISPLAY: Record<string, string> = {
 
 export function getDisplayType(backendType: string | undefined): string {
   if (!backendType) return 'club';
-  return BACKEND_TYPE_TO_DISPLAY[backendType] ?? 'club';
+  return BACKEND_TYPE_TO_DISPLAY[backendType.toUpperCase()] ?? 'club';
 }

@@ -39,6 +39,9 @@ jest.mock('react-native', () => {
   return {
     Platform,
     StyleSheet,
+    Alert: {
+      alert: jest.fn(),
+    },
     View: makeHost('View'),
     Text: makeHost('Text'),
     ScrollView: makeHost('ScrollView'),
@@ -71,6 +74,15 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
+jest.mock('expo-linking', () => ({
+  createURL: jest.fn((path = '') => `grada://${path}`),
+}));
+
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
+  openAuthSessionAsync: jest.fn(async () => ({ type: 'success' })),
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => undefined),
@@ -98,4 +110,8 @@ jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(async () => undefined),
   ImpactFeedbackStyle: { Light: 'Light', Medium: 'Medium' },
   NotificationFeedbackType: { Success: 'Success' },
+}));
+
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn(async () => ({ canceled: true, assets: [] })),
 }));

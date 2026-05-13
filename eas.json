@@ -21,61 +21,74 @@
     },
     "production": {
       "autoIncrement": true,
-      "env": {}
+      "env": {
+        "GRADA_RELEASE_BUILD": "true",
+        "EXPO_PUBLIC_USE_MOCK_DATA": "false"
+      }
     },
     "rangers_ios": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "rangers"
+        "APP_VARIANT": "rangers",
+        "EXPO_PUBLIC_CLUB_SLUG": "rangers"
       },
       "ios": {}
     },
     "rangers_android": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "rangers"
+        "APP_VARIANT": "rangers",
+        "EXPO_PUBLIC_CLUB_SLUG": "rangers"
       },
       "android": {}
     },
     "deportes_concepcion_ios": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "deportes-concepcion"
+        "APP_VARIANT": "deportes-concepcion",
+        "EXPO_PUBLIC_CLUB_SLUG": "deportes-concepcion"
       },
       "ios": {}
     },
     "deportes_concepcion_android": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "deportes-concepcion"
+        "APP_VARIANT": "deportes-concepcion",
+        "EXPO_PUBLIC_CLUB_SLUG": "deportes-concepcion"
       },
       "android": {}
     },
     "palestino_ios": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "palestino"
+        "APP_VARIANT": "palestino",
+        "EXPO_PUBLIC_CLUB_SLUG": "palestino"
       },
       "ios": {}
     },
     "palestino_android": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "palestino"
+        "APP_VARIANT": "palestino",
+        "EXPO_PUBLIC_CLUB_SLUG": "palestino"
       },
       "android": {}
     },
     "puerto_montt_ios": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "puerto-montt"
+        "APP_VARIANT": "puerto-montt",
+        "EXPO_PUBLIC_CLUB_SLUG": "puerto-montt",
+        "GRADA_EXPECTED_APP_VARIANT": "puerto-montt"
       },
       "ios": {}
     },
     "puerto_montt_android": {
       "extends": "production",
       "env": {
-        "APP_VARIANT": "puerto-montt"
+        "APP_VARIANT": "puerto-montt",
+        "EXPO_PUBLIC_CLUB_SLUG": "puerto-montt",
+        "GRADA_EXPECTED_APP_VARIANT": "puerto-montt"
       },
       "android": {}
     }

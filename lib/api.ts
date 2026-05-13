@@ -55,15 +55,42 @@ import {
   type SeatHoldResponse,
 } from "./schemas";
 
+/**
+ * Demo mode usually serves the whole club from mocks. For these slugs we still
+ * call GET /public/clubs/:slug so upcoming events/fixtures and store products
+ * come from the backend (e.g. populated in the database).
+ */
+const CLUB_SLUGS_LIVE_PAYLOAD_IN_MOCK_MODE = new Set<string>([
+  "santiago-morning",
+]);
+
 // ── Club ────────────────────────────────────────────────────────
 export async function fetchClubBySlug(
   slug: string,
 ): Promise<ClubWithRelations> {
-  if (getUseMockData()) {
+  const demo = getUseMockData();
+  const livePayload = demo && CLUB_SLUGS_LIVE_PAYLOAD_IN_MOCK_MODE.has(slug);
+
+  if (demo && !livePayload) {
     await delay(250);
     initMockNotifications(slug);
     return ClubWithRelationsSchema.parse(getMockClubWithRelations(slug));
   }
+
+  if (livePayload) {
+    await delay(100);
+    initMockNotifications(slug);
+    try {
+      const { data } = await http.get(`/public/clubs/${slug}`);
+      if (!data || typeof data !== "object") {
+        throw new Error(`Club not found (slug: "${slug}")`);
+      }
+      return ClubWithRelationsSchema.parse(data);
+    } catch {
+      return ClubWithRelationsSchema.parse(getMockClubWithRelations(slug));
+    }
+  }
+
   const { data } = await http.get(`/public/clubs/${slug}`);
   // Some backends may (incorrectly) return an empty body or plain text.
   if (!data || typeof data !== "object") {
@@ -336,6 +363,26 @@ export async function updateProfile(
   }
   const { data } = await http.patch("/public/fans/me", body);
   return FanProfileSchema.parse(data);
+}
+
+export async function deleteAccount(): Promise<{
+  status: "deleted";
+  message: string;
+  retainedRecords: string[];
+}> {
+  if (getUseMockData()) {
+    await delay(300);
+    return {
+      status: "deleted",
+      message: "Account deleted.",
+      retainedRecords: [
+        "Paid orders, tickets, and attendance records may be retained for legal, tax, access control, and operational requirements.",
+      ],
+    };
+  }
+
+  const { data } = await http.delete("/public/fans/me");
+  return data;
 }
 
 // ── Orders ──────────────────────────────────────────────────────

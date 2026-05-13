@@ -11,6 +11,7 @@ exports.CLUB_SLUG_TO_VARIANT = {
   palestino: 'palestino',
   'puerto-montt': 'puerto-montt',
   'union-espanola': 'union-espanola',
+  'santiago-morning': 'santiago-morning',
 };
 
 exports.CLUB_CONFIGS = {
@@ -53,5 +54,13 @@ exports.CLUB_CONFIGS = {
     bundleId: 'com.grada.unionespanola',
     package: 'com.grada.unionespanola',
     clubSlug: 'union-espanola',
+  },
+  'santiago-morning': {
+    name: 'Santiago Morning App',
+    slug: 'santiago-morning-app',
+    scheme: 'santiagomorningapp',
+    bundleId: 'com.grada.santiagomorning',
+    package: 'com.grada.santiagomorning',
+    clubSlug: 'santiago-morning',
   },
 };

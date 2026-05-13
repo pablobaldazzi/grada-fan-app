@@ -1,13 +1,19 @@
 import Constants from 'expo-constants';
 
-let runtimeConfig: Record<string, string> = {};
-try {
-  runtimeConfig = require('./generated-config.json');
-} catch {
-  // file may not exist; fall through to other sources
-}
+const extra = (Constants?.expoConfig?.extra as Record<string, unknown> | undefined) ?? {};
+const isReleaseBuild =
+  extra.releaseBuild === true ||
+  process.env.GRADA_RELEASE_BUILD === 'true' ||
+  process.env.EAS_BUILD === 'true';
 
-const extra = (Constants.expoConfig?.extra as Record<string, unknown> | undefined) ?? {};
+let runtimeConfig: Record<string, string> = {};
+if (!isReleaseBuild) {
+  try {
+    runtimeConfig = require('./generated-config.json');
+  } catch {
+    // file may not exist; fall through to other sources
+  }
+}
 
 function resolve(
   generated: string | undefined,
@@ -15,8 +21,19 @@ function resolve(
   envVal: string | undefined,
   fallback: string,
 ): string {
-  return generated || (extraVal as string) || envVal || fallback;
+  return (generated || (extraVal as string) || envVal || fallback).replace(/\/$/, '');
 }
+
+function resolveOptionalString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+const extraEas = extra.eas as Record<string, unknown> | undefined;
 
 export const config = {
   apiBaseUrl: resolve(
@@ -42,4 +59,9 @@ export const config = {
     extra.useMockData === true ||
     extra.useMockData === 'true' ||
     process.env.EXPO_PUBLIC_USE_MOCK_DATA === 'true',
+  easProjectId: resolveOptionalString(
+    extraEas?.projectId,
+    process.env.EXPO_PUBLIC_EAS_PROJECT_ID,
+    process.env.EAS_PROJECT_ID,
+  ),
 } as const;

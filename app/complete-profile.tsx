@@ -58,6 +58,8 @@ function DemoCompleteProfileScreen() {
 function ClerkCompleteProfileScreen() {
   const { club, theme } = useClub();
   const { profileStatus, refreshProfile } = useClerkAuth();
+  // Clerk is loaded lazily so demo mode does not initialize native Clerk modules.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { useAuth } = require('@clerk/clerk-expo') as typeof import('@clerk/clerk-expo');
   const { getToken } = useAuth();
 

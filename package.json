@@ -21,6 +21,7 @@
     "dev:palestino": "export APP_VARIANT=palestino EXPO_PUBLIC_CLUB_SLUG=palestino && node scripts/write-runtime-config.js && npx expo start --clear",
     "dev:puertomontt": "export APP_VARIANT=puerto-montt EXPO_PUBLIC_CLUB_SLUG=puerto-montt && node scripts/write-runtime-config.js && npx expo start --clear",
     "dev:unionespanola": "export APP_VARIANT=union-espanola EXPO_PUBLIC_CLUB_SLUG=union-espanola && node scripts/write-runtime-config.js && npx expo start --clear",
+    "dev:santiago-morning": "export APP_VARIANT=santiago-morning EXPO_PUBLIC_CLUB_SLUG=santiago-morning EXPO_PUBLIC_USE_MOCK_DATA=true && node scripts/write-runtime-config.js && npx expo start --clear",
     "build:rangers:ios": "eas build --profile rangers_ios --platform ios",
     "build:rangers:android": "eas build --profile rangers_android --platform android",
     "build:concepcion:ios": "eas build --profile deportes_concepcion_ios --platform ios",

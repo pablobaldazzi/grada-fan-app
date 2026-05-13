@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { router } from 'expo-router';
 
 // Screen components
 import LoginScreen from '@/app/(auth)/login';
@@ -21,22 +22,44 @@ jest.mock('@/lib/contexts/ClubContext', () => ({
   }),
 }));
 
-const loginMock = jest.fn(async () => undefined);
-const registerMock = jest.fn(async () => undefined);
+const mockSignInCreate = jest.fn();
+const mockSignUpCreate = jest.fn();
+const mockSetActive = jest.fn();
+const mockPrepareEmailAddressVerification = jest.fn();
 
-jest.mock('@/lib/contexts/AuthContext', () => ({
-  useAuth: () => ({
-    login: loginMock,
-    register: registerMock,
+jest.mock('@/lib/demo-mode', () => ({
+  getUseMockData: () => false,
+}));
+
+jest.mock('@clerk/clerk-expo', () => ({
+  useSignIn: () => ({
+    signIn: { create: mockSignInCreate },
+    setActive: mockSetActive,
+    isLoaded: true,
+  }),
+  useSignUp: () => ({
+    signUp: {
+      create: mockSignUpCreate,
+      prepareEmailAddressVerification: mockPrepareEmailAddressVerification,
+    },
+    setActive: mockSetActive,
+    isLoaded: true,
   }),
 }));
 
 describe('Auth flows (UI)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSignInCreate.mockResolvedValue({
+      status: 'complete',
+      createdSessionId: 'session-1',
+    });
+    mockSetActive.mockResolvedValue(undefined);
+    mockSignUpCreate.mockResolvedValue({ status: 'missing_requirements' });
+    mockPrepareEmailAddressVerification.mockResolvedValue(undefined);
   });
 
-  it('login: requires email+password and calls auth.login with normalized email', async () => {
+  it('login: requires email+password and signs in with normalized email', async () => {
     const r = render(React.createElement(LoginScreen));
 
     const entrarBtnLabel1 = r.getAllByText('Entrar').slice(-1)[0];
@@ -50,11 +73,16 @@ describe('Auth flows (UI)', () => {
     fireEvent.press((entrarBtnLabel2 as any).parent);
 
     await waitFor(() => {
-      expect(loginMock).toHaveBeenCalledWith('club-1', 'pablo@example.com', 'secret123');
+      expect(mockSignInCreate).toHaveBeenCalledWith({
+        identifier: 'pablo@example.com',
+        password: 'secret123',
+      });
     });
+    expect(mockSetActive).toHaveBeenCalledWith({ session: 'session-1' });
+    expect(router.replace).toHaveBeenCalledWith('/(tabs)');
   });
 
-  it('register: requires min 8 chars and calls auth.register with names', async () => {
+  it('register: requires min 8 chars and starts email verification with names', async () => {
     const r = render(React.createElement(RegisterScreen));
 
     fireEvent.changeText(r.getByPlaceholderText('Juan'), 'Pablo');
@@ -71,13 +99,14 @@ describe('Auth flows (UI)', () => {
     fireEvent.press((crearBtnLabel2 as any).parent);
 
     await waitFor(() => {
-      expect(registerMock).toHaveBeenCalledWith(
-        'club-1',
-        'pablo@example.com',
-        'longenough',
-        'Pablo',
-        'Baldazzi'
-      );
+      expect(mockSignUpCreate).toHaveBeenCalledWith({
+        emailAddress: 'pablo@example.com',
+        password: 'longenough',
+        firstName: 'Pablo',
+        lastName: 'Baldazzi',
+      });
     });
+    expect(mockPrepareEmailAddressVerification).toHaveBeenCalledWith({ strategy: 'email_code' });
+    expect(r.getByText('Verifica tu email')).toBeTruthy();
   });
 });

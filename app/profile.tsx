@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   Image,
+  type ImageSourcePropType,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,9 +18,8 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { useClub } from "@/lib/contexts/ClubContext";
 import { useClerkAuth } from "@/lib/hooks/useClerkAuth";
-import { updateProfile } from "@/lib/api";
+import { deleteAccount, updateProfile } from "@/lib/api";
 import { getUseMockData } from "@/lib/demo-mode";
-import { ImageSourcePropType } from "react-native";
 
 const demoProfilePic: ImageSourcePropType = require("@/assets/images/demo-profile.png");
 
@@ -117,6 +117,7 @@ export default function ProfileScreen() {
   const clerkImageUrl = user?.imageUrl ?? null;
   const hasImage = profileImageUri || isDemo || clerkImageUrl;
   const [saving, setSaving] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -147,6 +148,39 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      "Eliminar cuenta",
+      "Se eliminará tu cuenta de acceso y tus datos de perfil. Tus compras, entradas y registros de asistencia pueden conservarse por motivos legales, tributarios, de acceso y operación.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar cuenta",
+          style: "destructive",
+          onPress: async () => {
+            setDeletingAccount(true);
+            try {
+              await deleteAccount();
+              try {
+                await logout();
+              } catch {
+                // The backend has already deleted the account; route away even if local session cleanup fails.
+              }
+              router.replace("/");
+            } catch {
+              Alert.alert(
+                "Error",
+                "No se pudo eliminar la cuenta. Inténtalo nuevamente o contacta a soporte.",
+              );
+            } finally {
+              setDeletingAccount(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -232,27 +266,46 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        <Pressable
-          onPress={() => {
-            Alert.alert("Cerrar sesión", "¿Estás seguro?", [
-              { text: "Cancelar", style: "cancel" },
-              {
-                text: "Cerrar sesión",
-                style: "destructive",
-                onPress: async () => {
-                  await logout();
-                  router.replace("/");
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Cuenta</Text>
+          <Pressable
+            onPress={() => {
+              Alert.alert("Cerrar sesión", "¿Estás seguro?", [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Cerrar sesión",
+                  style: "destructive",
+                  onPress: async () => {
+                    await logout();
+                    router.replace("/");
+                  },
                 },
-              },
-            ]);
-          }}
-          style={({ pressed }) => [
-            styles.dangerBtn,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
-        >
-          <Text style={styles.dangerBtnText}>Cerrar sesión</Text>
-        </Pressable>
+              ]);
+            }}
+            style={({ pressed }) => [
+              styles.secondaryAccountBtn,
+              { borderColor: colors.cardBorder, opacity: pressed ? 0.9 : 1 },
+            ]}
+          >
+            <Text style={[styles.secondaryAccountBtnText, { color: colors.text }]}>Cerrar sesión</Text>
+          </Pressable>
+
+          <Pressable
+            disabled={deletingAccount}
+            onPress={confirmDeleteAccount}
+            style={({ pressed }) => [
+              styles.dangerBtn,
+              { opacity: deletingAccount ? 0.6 : pressed ? 0.9 : 1 },
+            ]}
+          >
+            <Text style={styles.dangerBtnText}>
+              {deletingAccount ? "Eliminando…" : "Eliminar cuenta"}
+            </Text>
+          </Pressable>
+          <Text style={[styles.accountHelp, { color: colors.textSecondary }]}>
+            Elimina tu acceso y perfil. Las compras y entradas pueden quedar registradas cuando sea necesario.
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -344,6 +397,17 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: 14,
   },
+  secondaryAccountBtn: {
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  secondaryAccountBtnText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+  },
   dangerBtn: {
     borderRadius: 14,
     paddingVertical: 12,
@@ -356,5 +420,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: 14,
     color: "#dc2626",
+  },
+  accountHelp: {
+    marginTop: 10,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    lineHeight: 17,
   },
 });

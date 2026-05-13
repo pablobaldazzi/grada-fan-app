@@ -671,6 +671,20 @@ const MOCK_CLUBS: Record<string, MockClubConfig> = {
       },
     ],
   },
+  "santiago-morning": {
+    name: "Santiago Morning",
+    nickname: "Chaguito",
+    primaryColor: "#FFFFFF",
+    secondaryColor: "#000000",
+    storeBackgroundColor: "#0A0A0A",
+    navBarTextColor: "#FFFFFF",
+    venue: "Estadio Municipal de La Pintana",
+    rivals: ["Deportes Recoleta", "Magallanes"],
+    clubLogoUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/3/33/SMdeLP.png",
+    /** Events/products: loaded from API in mock mode (see api.ts). Empty = no fake fixtures if API fails. */
+    matches: [],
+  },
 };
 
 function getClubConfig(slug: string): MockClubConfig {

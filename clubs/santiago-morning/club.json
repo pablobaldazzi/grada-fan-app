@@ -1,0 +1,35 @@
+{
+  "tenantKey": "santiago-morning",
+  "clubId": "club_santiago_morning_001",
+  "displayName": "Club de Deportes Santiago Morning",
+  "appName": "Santiago Morning App",
+  "theme": {
+    "primary": "#FFFFFF",
+    "primaryDark": "#CCCCCC",
+    "secondary": "#000000",
+    "background": "#0A0A0A",
+    "surface": "#151515",
+    "text": "#FFFFFF",
+    "accent": "#FFFFFF"
+  },
+  "logo": "SMdeLP.png",
+  "deepLinkDomain": "santiagomorning.clubapp.com",
+  "features": {
+    "home": true,
+    "membershipId": true,
+    "tickets": true,
+    "merch": true,
+    "benefits": true,
+    "experiences": true,
+    "notifications": true,
+    "academy": false
+  },
+  "legal": {
+    "privacyPolicy": "https://www.santiagomorning.cl/privacy",
+    "termsOfService": "https://www.santiagomorning.cl/terms"
+  },
+  "support": {
+    "email": "soporte@santiagomorning.cl",
+    "ticketsFaq": "https://www.santiagomorning.cl/faq"
+  }
+}

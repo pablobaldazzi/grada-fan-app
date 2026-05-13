@@ -2,6 +2,16 @@
 const fs = require('fs');
 const path = require('path');
 
+const isReleaseBuild =
+  process.env.GRADA_RELEASE_BUILD === 'true' || process.env.EAS_BUILD === 'true';
+
+if (isReleaseBuild && process.env.GRADA_ALLOW_RUNTIME_CONFIG_GENERATION !== 'true') {
+  throw new Error(
+    'Refusing to write lib/generated-config.json during a release build. ' +
+      'Use Expo extra/env values for release builds instead.',
+  );
+}
+
 const variant = process.env.APP_VARIANT || 'rangers';
 
 const config = {

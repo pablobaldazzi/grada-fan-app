@@ -123,6 +123,8 @@ function DemoLoginScreen() {
 
 function ClerkLoginScreen() {
   const { club, theme } = useClub();
+  // Clerk is loaded lazily so demo mode does not initialize native Clerk modules.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { useSignIn } = require('@clerk/clerk-expo') as typeof import('@clerk/clerk-expo');
   const { signIn, setActive, isLoaded } = useSignIn();
 

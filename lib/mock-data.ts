@@ -684,11 +684,91 @@ const MOCK_BENEFITS_UNION_ESPANOLA: Benefit[] = [
   },
 ];
 
+const MOCK_BENEFITS_SANTIAGO_MORNING: Benefit[] = [
+  {
+    id: 'ben_sm_001',
+    title: '20% en picadas del barrio',
+    description:
+      'Descuento en completo, churrasco y tablita para socios bohemios. Valido de lunes a jueves cerca del estadio.',
+    category: 'COMIDA',
+    discount: '20%',
+    partner: 'Fuente Buenos Aires La Pintana',
+    location: 'Av. La Serena esquina Gomez Carreño, La Pintana',
+    membersOnly: true,
+    requiredTier: 'gold',
+    image: 'food',
+  },
+  {
+    id: 'ben_sm_002',
+    title: 'Cafe americano en Recoleta',
+    description:
+      'Un cafe americano por dia gratis para socios activos — homenaje a la casa comunal del club.',
+    category: 'CAFE',
+    discount: 'Gratis',
+    partner: 'Cafe Bohemio',
+    location: 'Av. Dorsal 1300, Recoleta',
+    membersOnly: true,
+    requiredTier: 'gold',
+    image: 'coffee',
+  },
+  {
+    id: 'ben_sm_003',
+    title: '15% en indumentaria blanco y negro',
+    description:
+      'Descuento en polerones, gorros y accesorios con la marca del Chaguito en la tienda del club.',
+    category: 'DEPORTE',
+    discount: '15%',
+    partner: 'Tienda Oficial Santiago Morning',
+    location: 'Sede Recoleta y venta online santiagomorning.cl',
+    membersOnly: false,
+    requiredTier: 'fan',
+    image: 'sport',
+  },
+  {
+    id: 'ben_sm_004',
+    title: '2x1 cine zona sur',
+    description: 'Dos entradas por el precio de una los martes en salas seleccionadas del sector sur.',
+    category: 'ENTRETENIMIENTO',
+    discount: '2x1',
+    partner: 'CineStar La Florida',
+    location: 'Vicuña Mackenna 7110, La Florida',
+    membersOnly: true,
+    requiredTier: 'silver',
+    image: 'cinema',
+  },
+  {
+    id: 'ben_sm_005',
+    title: '10% en farmacia',
+    description: 'Descuento en productos de botiquin para microbuseros y socios.',
+    category: 'SALUD',
+    discount: '10%',
+    partner: 'Farmacia Popular',
+    location: 'Recoleta y La Pintana',
+    membersOnly: false,
+    requiredTier: 'fan',
+    image: 'health',
+  },
+  {
+    id: 'ben_sm_006',
+    title: 'Almuerzo ejecutivo $5.490',
+    description:
+      'Menu del dia a precio especial de lunes a viernes para socios cerca del Estadio de La Pintana.',
+    category: 'COMIDA',
+    discount: '$5.490',
+    partner: 'Restaurant Don Chago',
+    location: 'Ciudad de Mexico 1450, La Pintana',
+    membersOnly: true,
+    requiredTier: 'silver',
+    image: 'food',
+  },
+];
+
 const BENEFITS_BY_CLUB: Record<string, Benefit[]> = {
   'puerto-montt': MOCK_BENEFITS_PUERTO_MONTT,
   palestino: MOCK_BENEFITS_PALESTINO,
   'deportes-concepcion': MOCK_BENEFITS_CONCEPCION,
   'union-espanola': MOCK_BENEFITS_UNION_ESPANOLA,
+  'santiago-morning': MOCK_BENEFITS_SANTIAGO_MORNING,
 };
 
 export function getMockBenefits(slug: string): Benefit[] {
@@ -990,11 +1070,75 @@ const MOCK_EXPERIENCES_UNION_ESPANOLA: Experience[] = [
   },
 ];
 
+const MOCK_EXPERIENCES_SANTIAGO_MORNING: Experience[] = [
+  {
+    id: 'exp_sm_001',
+    title: 'Meet & Greet con el Plantel',
+    description:
+      'Conoce al plantel de Primera del Chaguito en La Pintana. Foto grupal, autografos y recorrido por zona de calentamiento.',
+    date: '2026-03-18',
+    time: '11:00',
+    location: 'Estadio Municipal de La Pintana',
+    spotsTotal: 35,
+    spotsRemaining: 12,
+    price: 12000,
+    currency: 'CLP',
+    membersOnly: true,
+    image: 'meetgreet',
+  },
+  {
+    id: 'exp_sm_002',
+    title: 'Tour Estadio de La Pintana',
+    description:
+      'Recorre el estadio de 5.000 butacas (Ciudad de Mexico 1589): vestuarios, sala de prensa y acceso a la cancha.',
+    date: '2026-03-28',
+    time: '10:00',
+    location: 'Estadio Municipal de La Pintana, La Pintana',
+    spotsTotal: 40,
+    spotsRemaining: 24,
+    price: 7000,
+    currency: 'CLP',
+    membersOnly: false,
+    image: 'tour',
+  },
+  {
+    id: 'exp_sm_003',
+    title: 'Clinica La V Negra',
+    description:
+      'Jornada deportiva para ninos de 7 a 13 anos con el cuerpo tecnico. Incluye camiseta blanca con detalle negro.',
+    date: '2026-04-05',
+    time: '09:00',
+    location: 'Cancha sintetica adjunta, La Pintana',
+    spotsTotal: 45,
+    spotsRemaining: 30,
+    price: 5000,
+    currency: 'CLP',
+    membersOnly: false,
+    image: 'clinic',
+  },
+  {
+    id: 'exp_sm_004',
+    title: 'Cena con campeones de 1942',
+    description:
+      'Noche bohemia con ex jugadores: recuerdos del Campeonato Nacional de 1942 y la epoca del Club de Deportes Santiago.',
+    date: '2026-04-18',
+    time: '20:00',
+    location: 'Salon Auditorio Santiago Morning, Recoleta',
+    spotsTotal: 50,
+    spotsRemaining: 8,
+    price: 35000,
+    currency: 'CLP',
+    membersOnly: true,
+    image: 'dinner',
+  },
+];
+
 const EXPERIENCES_BY_CLUB: Record<string, Experience[]> = {
   'puerto-montt': MOCK_EXPERIENCES_PUERTO_MONTT,
   palestino: MOCK_EXPERIENCES_PALESTINO,
   'deportes-concepcion': MOCK_EXPERIENCES_CONCEPCION,
   'union-espanola': MOCK_EXPERIENCES_UNION_ESPANOLA,
+  'santiago-morning': MOCK_EXPERIENCES_SANTIAGO_MORNING,
 };
 
 export function getMockExperiences(slug: string): Experience[] {
@@ -1143,9 +1287,52 @@ const UNION_ESPANOLA_NEWS: NewsArticle[] = [
   },
 ];
 
+const SANTIAGO_MORNING_NEWS: NewsArticle[] = [
+  {
+    id: 'news_sm_001',
+    title: 'Santiago Morning afronta por primera vez la Segunda Division Profesional',
+    summary:
+      'El Chaguito iniciara la Liga de Ascenso 2026 luego del decrecimiento deportivo en Primera B 2025.',
+    body: 'Club de Deportes Santiago Morning confirmo su participacion en la Segunda Division Profesional de Chile en 2026, una categoria que el plantel masculino no disputaba en la era actual del ascenso.\n\nLa institucion —con origen en la fusion de 1936 entre Club de Deportes Santiago y Morning Star Sport Club y fecha de fundacion del legado mas antiguo el 16 de octubre de 1903— enfrenta una etapa exigente con el objetivo de volver cuanto antes al profesionalismo de segunda categoria nacional.\n\nDirigentes y jugadores destacaron el apoyo de la hincha bohemia y llamaron a mantener el aliento desde el Estadio Municipal de La Pintana.',
+    category: 'institucional',
+    publishedAt: '2026-03-03T09:30:00',
+    author: 'Prensa SM',
+  },
+  {
+    id: 'news_sm_002',
+    title: 'Esteban Paredes dirige desde el banquillo a sus ex companeros microbuseros',
+    summary:
+      'La leyenda rojinegra regresa en una nueva funcion al club donde fue figura histórica entre 2005 y 2009.',
+    body: 'Esteban Paredes asumio la conduccion tecnica de Santiago Morning, sellando un ciclo cargado de simbolismo: el futbolista emblematico que encabezo la campana de Primera B 2005 ahora proyecta desde el duelo el proceso competitivo.\n\n"El Morning me dio mucho cuando jugaba aca y quiero ayudar a que el club encuentre firmeza. Sabemos donde estamos parados y trabajamos con humildad", comento en la presentacion ante medios locales.\n\nEl cuerpo tecnico prioriza el trabajo físico del plantel profesional reunido para la nueva temporada.',
+    category: 'fichaje',
+    publishedAt: '2026-03-08T12:15:00',
+    author: 'Prensa SM',
+  },
+  {
+    id: 'news_sm_003',
+    title: 'Rengo queda con un empate disputado en La Pintana',
+    summary: 'Por la segunda fecha amistosa de preparacion, el Chago repartió puntos con Deportes Rengo.',
+    body: 'En el Estadio Municipal de La Pintana (Ciudad de Mexico 1589), Santiago Morning igualó ante Deportes Rengo en una jornada de fogueo marcada por el calor capitalino.\n\nEntrenamiento intensivo y rotaciones continuas permitieron a Paredes observar opciones antes del calendario de ascenso. La defensa trabajó lineas compactas ante el avance rival.\n\n"Queremos un equipo que maneje bien la salida cuando sea local; La Pintana tiene que intimidar igual que antes", reflexionó uno de los volantes titulares.',
+    category: 'resultado',
+    publishedAt: '2026-03-16T21:05:00',
+    author: 'Prensa SM',
+  },
+  {
+    id: 'news_sm_004',
+    title: 'Las Bohemias siguen ejemplo en primera: filial femenina en la elite',
+    summary:
+      'Mientras la rama masculina reordena proyecto, Santiago Morning mujeres mantiene hegemonía en primera division nacional.',
+    body: 'En paralelo al proceso del plantel profesional masculino, la rama femenina de Santiago Morning continua establecida en la Primera Division de Futbol Femenino de Chile, donde la institucion se ha destacado como referente nacional con multiples titulos entre 2018 y Transicion 2020.\n\nDesde comunicaciones deportivas destacan como politica institucional sostener el desarrollo paralelo entre formativas y equipo adulto profesional masculino.',
+    category: 'cantera',
+    publishedAt: '2026-03-05T08:45:00',
+    author: 'Comunicaciones SM',
+  },
+];
+
 const NEWS_BY_CLUB: Record<string, NewsArticle[]> = {
   'puerto-montt': PUERTO_MONTT_NEWS,
   'union-espanola': UNION_ESPANOLA_NEWS,
+  'santiago-morning': SANTIAGO_MORNING_NEWS,
 };
 
 export function getMockNews(slug?: string): NewsArticle[] {
@@ -1272,11 +1459,42 @@ const SQUAD_UNION_ESPANOLA: SquadFormation = {
   ],
 };
 
+const SQUAD_SANTIAGO_MORNING: SquadFormation = {
+  name: '4-4-2',
+  coach: 'Esteban Paredes',
+  startingEleven: [
+    { id: 'sp_sm_01', name: 'A. Arana', number: 1, position: 'GK', role: 'Portero' },
+    { id: 'sp_sm_02', name: 'G. Santelices', number: 2, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_sm_03', name: 'B. Guajardo', number: 3, position: 'DEF', role: 'Lateral izquierdo' },
+    { id: 'sp_sm_04', name: 'M. Gatica', number: 5, position: 'DEF', role: 'Central' },
+    { id: 'sp_sm_05', name: 'L. Rigazzi', number: 22, position: 'DEF', role: 'Central' },
+    { id: 'sp_sm_06', name: 'T. Asprea', number: 6, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_sm_07', name: 'S. Salazar', number: 8, position: 'MID', role: 'Mediocampista central' },
+    { id: 'sp_sm_08', name: 'F. Manríquez', number: 21, position: 'MID', role: 'Extremo derecho' },
+    { id: 'sp_sm_09', name: 'D. Faúndez', number: 29, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_sm_10', name: 'G. Escobar', number: 11, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_sm_11', name: 'J. Barrientos', number: 30, position: 'FWD', role: 'Delantero centro' },
+  ],
+  substitutes: [
+    { id: 'sp_sm_12', name: 'L. Cañete', number: 12, position: 'GK', role: 'Portero' },
+    { id: 'sp_sm_13', name: 'M. Villegas', number: 26, position: 'GK', role: 'Portero' },
+    { id: 'sp_sm_14', name: 'D. Cerón', number: 16, position: 'DEF', role: 'Central' },
+    { id: 'sp_sm_15', name: 'M. Delgado', number: 23, position: 'DEF', role: 'Central' },
+    { id: 'sp_sm_16', name: 'D. Estay', number: 25, position: 'DEF', role: 'Lateral derecho' },
+    { id: 'sp_sm_17', name: 'E. Ormeño', number: 20, position: 'MID', role: 'Mediocampista ofensivo' },
+    { id: 'sp_sm_18', name: 'P. Violante', number: 31, position: 'MID', role: 'Mediocampista defensivo' },
+    { id: 'sp_sm_19', name: 'P. Lobos', number: 33, position: 'MID', role: 'Extremo izquierdo' },
+    { id: 'sp_sm_20', name: 'B. Taiva', number: 18, position: 'FWD', role: 'Delantero centro' },
+    { id: 'sp_sm_21', name: 'M. Coronado', number: 27, position: 'FWD', role: 'Delantero centro' },
+  ],
+};
+
 const SQUAD_BY_CLUB: Record<string, SquadFormation> = {
   'puerto-montt': SQUAD_PUERTO_MONTT,
   rangers: SQUAD_RANGERS,
   palestino: SQUAD_PALESTINO,
   'union-espanola': SQUAD_UNION_ESPANOLA,
+  'santiago-morning': SQUAD_SANTIAGO_MORNING,
 };
 
 export function getMockSquad(slug: string): SquadFormation | null {

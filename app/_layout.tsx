@@ -11,8 +11,7 @@ import { PushNotificationHandler } from "@/components/PushNotificationHandler";
 import { loadStoredMembershipTier } from "@/lib/membership";
 import { queryClient } from "@/lib/query-client";
 import { CartProvider } from "@/lib/cart-context";
-import { ClubProvider } from "@/lib/contexts/ClubContext";
-import { useClub } from "@/lib/contexts/ClubContext";
+import { ClubProvider, useClub } from "@/lib/contexts/ClubContext";
 import { tokenCache } from "@/lib/clerk-token-cache";
 import { getUseMockData } from "@/lib/demo-mode";
 import {
@@ -131,6 +130,7 @@ export default function RootLayout() {
   }
 
   // Clerk is only required in non-demo mode; demo mode avoids native module init issues.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { ClerkProvider, ClerkLoaded } = require("@clerk/clerk-expo") as typeof import("@clerk/clerk-expo");
 
   return (

@@ -11,10 +11,12 @@ describe('notification type mapping', () => {
 
   it('maps PROMO to promo', () => {
     expect(getDisplayType('PROMO')).toBe('promo');
+    expect(getDisplayType('promo')).toBe('promo');
   });
 
   it('maps NEW_BENEFIT to offer', () => {
     expect(getDisplayType('NEW_BENEFIT')).toBe('offer');
+    expect(getDisplayType('new_benefit')).toBe('offer');
   });
 
   it('maps GENERAL to club', () => {

@@ -24,6 +24,7 @@ const CLUB_LOGOS: Record<string, ImageSourcePropType> = {
   'deportes-concepcion': require('@/assets/clubs/deportes-concepcion/splash-icon.png'),
   palestino: require('@/assets/clubs/palestino/splash-icon.png'),
   'puerto-montt': require('@/assets/clubs/puerto-montt/splash-icon.png'),
+  'santiago-morning': require('@/assets/clubs/santiago-morning/splash-icon.png'),
 };
 
 WebBrowser.maybeCompleteAuthSession();
@@ -138,6 +139,8 @@ function DemoRegisterScreen() {
 
 function ClerkRegisterScreen() {
   const { club, theme } = useClub();
+  // Clerk is loaded lazily so demo mode does not initialize native Clerk modules.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { useSignUp } = require('@clerk/clerk-expo') as typeof import('@clerk/clerk-expo');
   const { signUp, setActive, isLoaded } = useSignUp();
 

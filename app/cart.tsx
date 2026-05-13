@@ -31,7 +31,9 @@ export default function CartScreen() {
   const [checkingOut, setCheckingOut] = useState(false);
   const colors = theme.colors;
   useEffect(() => {
-    if (fan?.email && !email) setEmail(fan.email);
+    if (fan?.email) {
+      setEmail((current) => current || fan.email);
+    }
   }, [fan?.email]);
 
   const handleCheckout = async () => {
