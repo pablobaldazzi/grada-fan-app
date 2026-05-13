@@ -14,7 +14,7 @@ const RELEASE_BUILD_PROFILES = new Set([
   'puerto_montt_android',
 ]);
 
-function isLocalhostUrl(value: string): boolean {
+function isLocalhostUrl(value) {
   try {
     const { hostname } = new URL(value);
     return (
@@ -28,7 +28,7 @@ function isLocalhostUrl(value: string): boolean {
   }
 }
 
-function failReleaseConfig(message: string): never {
+function failReleaseConfig(message) {
   throw new Error(`[release config] ${message}`);
 }
 
@@ -50,7 +50,7 @@ const easProjectId =
   process.env.EXPO_PUBLIC_EAS_PROJECT_ID || process.env.EAS_PROJECT_ID;
 const expectedVariant =
   process.env.GRADA_EXPECTED_APP_VARIANT ||
-  (buildProfile?.startsWith('puerto_montt') ? 'puerto-montt' : undefined);
+  (buildProfile && buildProfile.startsWith('puerto_montt') ? 'puerto-montt' : undefined);
 
 if (isReleaseBuild) {
   if (!process.env.EXPO_PUBLIC_API_BASE_URL) {
