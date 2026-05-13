@@ -80,7 +80,8 @@
       "env": {
         "APP_VARIANT": "puerto-montt",
         "EXPO_PUBLIC_CLUB_SLUG": "puerto-montt",
-        "GRADA_EXPECTED_APP_VARIANT": "puerto-montt"
+        "GRADA_EXPECTED_APP_VARIANT": "puerto-montt",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "4afe52db-e86a-408a-a4fe-63b0ebd6e83f"
       },
       "ios": {}
     },
@@ -89,7 +90,8 @@
       "env": {
         "APP_VARIANT": "puerto-montt",
         "EXPO_PUBLIC_CLUB_SLUG": "puerto-montt",
-        "GRADA_EXPECTED_APP_VARIANT": "puerto-montt"
+        "GRADA_EXPECTED_APP_VARIANT": "puerto-montt",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "4afe52db-e86a-408a-a4fe-63b0ebd6e83f"
       },
       "android": {}
     }
