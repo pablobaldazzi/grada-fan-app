@@ -103,6 +103,9 @@ export default {
     ios: {
       supportsTablet: false,
       bundleIdentifier: club.bundleId,
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       package: club.package,
