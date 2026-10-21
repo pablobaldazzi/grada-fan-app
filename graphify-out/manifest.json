@@ -1,0 +1,974 @@
+{
+  "__tests__/app/benefit-detail.test.tsx": {
+    "mtime": 1792610300.2247162,
+    "seen": 1792610301.459316,
+    "ast_hash": "dcf66b9349e26ff9e12d85836b8706c4",
+    "semantic_hash": ""
+  },
+  "__tests__/app/more-benefits.test.tsx": {
+    "mtime": 1792610300.2249281,
+    "seen": 1792610301.459317,
+    "ast_hash": "488679c8549322c656b6f5fe67071b10",
+    "semantic_hash": ""
+  },
+  "__tests__/app/profile.test.tsx": {
+    "mtime": 1792610300.225127,
+    "seen": 1792610301.459318,
+    "ast_hash": "8cd77bc505cf86f1799af462660a8257",
+    "semantic_hash": ""
+  },
+  "__tests__/e2e/auth-flows.test.tsx": {
+    "mtime": 1792610300.2253568,
+    "seen": 1792610301.459318,
+    "ast_hash": "912220cb028f041b51a6585e5feb1907",
+    "semantic_hash": ""
+  },
+  "__tests__/e2e/notifications-deep-link.test.tsx": {
+    "mtime": 1792610300.2254276,
+    "seen": 1792610301.459319,
+    "ast_hash": "e5c00c244439357cfe4f7060d67c2704",
+    "semantic_hash": ""
+  },
+  "__tests__/e2e/notifications.test.tsx": {
+    "mtime": 1792610300.2254784,
+    "seen": 1792610301.459319,
+    "ast_hash": "c2cfc19d64efe8f9deb0def8a460e73b",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/api-squad.test.ts": {
+    "mtime": 1792610300.2257082,
+    "seen": 1792610301.45932,
+    "ast_hash": "de32b7de7aa6eb357b0d91f663bb17f1",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/api.test.ts": {
+    "mtime": 1792610300.225899,
+    "seen": 1792610301.45932,
+    "ast_hash": "6c17daf9d8edafb4d8595c1c7b4ae3e7",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/checkout-payload.test.ts": {
+    "mtime": 1792610300.2259586,
+    "seen": 1792610301.459321,
+    "ast_hash": "2c5987babd23bbd31df3c3e6136fe4f3",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/config.test.ts": {
+    "mtime": 1792610300.2260706,
+    "seen": 1792610301.459321,
+    "ast_hash": "14c7893d50d7dc347ded8228021ec972",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/experiences-api.test.ts": {
+    "mtime": 1792610300.2262697,
+    "seen": 1792610301.4593222,
+    "ast_hash": "08968550c73fc28e82997228248030e7",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/format.test.ts": {
+    "mtime": 1792610300.2263284,
+    "seen": 1792610301.4593222,
+    "ast_hash": "e9e79dd39263b898b4f7c59019dab701",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/news-api.test.ts": {
+    "mtime": 1792610300.226514,
+    "seen": 1792610301.459323,
+    "ast_hash": "3d869f921e34f8514b42549f79fc740e",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/notification-type-mapping.test.ts": {
+    "mtime": 1792610300.2266488,
+    "seen": 1792610301.459323,
+    "ast_hash": "7ccd1891a7918e1766bfb148cd582864",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/schemas.test.ts": {
+    "mtime": 1792610300.22687,
+    "seen": 1792610301.459323,
+    "ast_hash": "ddea3f4fb993963f67d2cf1ba7cef683",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/squad.test.ts": {
+    "mtime": 1792610300.2271168,
+    "seen": 1792610301.459324,
+    "ast_hash": "df2832653a4deb47d1fc0d42fc49a579",
+    "semantic_hash": ""
+  },
+  "__tests__/lib/theme.test.ts": {
+    "mtime": 1792610300.2271883,
+    "seen": 1792610301.459324,
+    "ast_hash": "962c46387692cb2bb3e4c9680dffd6c8",
+    "semantic_hash": ""
+  },
+  "__tests__/mocks/fileMock.js": {
+    "mtime": 1792610300.2273448,
+    "seen": 1792610301.4593248,
+    "ast_hash": "0c1d9e1731bb3d71b0b7a15695bfab14",
+    "semantic_hash": ""
+  },
+  "__tests__/setup.ts": {
+    "mtime": 1792610300.2276366,
+    "seen": 1792610301.4593248,
+    "ast_hash": "b492161526bad05683d1d7de893b0b90",
+    "semantic_hash": ""
+  },
+  "app.config.ts": {
+    "mtime": 1792610300.2279387,
+    "seen": 1792610301.4593248,
+    "ast_hash": "7e375322f49b63765000c9325caf7e8b",
+    "semantic_hash": ""
+  },
+  "app/(auth)/_layout.tsx": {
+    "mtime": 1792610300.2282193,
+    "seen": 1792610301.459326,
+    "ast_hash": "b360d2bd419094d3115d1211e812ce7a",
+    "semantic_hash": ""
+  },
+  "app/(auth)/login.tsx": {
+    "mtime": 1792610300.228357,
+    "seen": 1792610301.459326,
+    "ast_hash": "ea42f8d71106603c4693b6cd73a5deeb",
+    "semantic_hash": ""
+  },
+  "app/(auth)/register.tsx": {
+    "mtime": 1792610300.2285197,
+    "seen": 1792610301.459327,
+    "ast_hash": "ebdb72201df198a158f27ff28aec1a67",
+    "semantic_hash": ""
+  },
+  "app/(tabs)/_layout.tsx": {
+    "mtime": 1792610300.2286468,
+    "seen": 1792610301.459327,
+    "ast_hash": "d695cc77579639e3e6b5cdd1a70addfb",
+    "semantic_hash": ""
+  },
+  "app/(tabs)/index.tsx": {
+    "mtime": 1792610300.2288592,
+    "seen": 1792610301.459327,
+    "ast_hash": "eb9d76d9d3a0310061a96cb736cfb27f",
+    "semantic_hash": ""
+  },
+  "app/(tabs)/membership.tsx": {
+    "mtime": 1792610300.229137,
+    "seen": 1792610301.459328,
+    "ast_hash": "550d6a7e01a444c000f717321e343128",
+    "semantic_hash": ""
+  },
+  "app/(tabs)/more.tsx": {
+    "mtime": 1792610300.2293062,
+    "seen": 1792610301.459328,
+    "ast_hash": "7ecc405cfa858a7127809de35802efaa",
+    "semantic_hash": ""
+  },
+  "app/(tabs)/store.tsx": {
+    "mtime": 1792610300.2295158,
+    "seen": 1792610301.459328,
+    "ast_hash": "dd8906ceee0714df712e3fd6cebea2f9",
+    "semantic_hash": ""
+  },
+  "app/(tabs)/tickets.tsx": {
+    "mtime": 1792610300.229645,
+    "seen": 1792610301.4593291,
+    "ast_hash": "9246f774a564373f94a373cf3b4fc494",
+    "semantic_hash": ""
+  },
+  "app/+html.tsx": {
+    "mtime": 1792610300.2297058,
+    "seen": 1792610301.4593291,
+    "ast_hash": "aa1696701911c87e48b65f96ab6e6772",
+    "semantic_hash": ""
+  },
+  "app/+native-intent.tsx": {
+    "mtime": 1792610300.2297587,
+    "seen": 1792610301.4593291,
+    "ast_hash": "d39a49ddb759259630fac975b04b06ce",
+    "semantic_hash": ""
+  },
+  "app/+not-found.tsx": {
+    "mtime": 1792610300.2299154,
+    "seen": 1792610301.45933,
+    "ast_hash": "a4c551a3aaf5703fc140a4740bc2b022",
+    "semantic_hash": ""
+  },
+  "app/_layout.tsx": {
+    "mtime": 1792610300.230123,
+    "seen": 1792610301.45933,
+    "ast_hash": "788f82640946dec92a0666486e25cbbc",
+    "semantic_hash": ""
+  },
+  "app/benefit-detail.tsx": {
+    "mtime": 1792610300.2303207,
+    "seen": 1792610301.45933,
+    "ast_hash": "ac160ba3396fe605bb6ab5ae509b7d68",
+    "semantic_hash": ""
+  },
+  "app/cart.tsx": {
+    "mtime": 1792610300.2304668,
+    "seen": 1792610301.459331,
+    "ast_hash": "04dc7636063fdead7a383703bb942153",
+    "semantic_hash": ""
+  },
+  "app/complete-profile.tsx": {
+    "mtime": 1792610300.230579,
+    "seen": 1792610301.459331,
+    "ast_hash": "da43405a10f6c07f4bcc73d688a7941c",
+    "semantic_hash": ""
+  },
+  "app/experience-detail.tsx": {
+    "mtime": 1792610300.2308316,
+    "seen": 1792610301.459331,
+    "ast_hash": "0796d42c2767278bf58b7fcd8dd0b69b",
+    "semantic_hash": ""
+  },
+  "app/index.tsx": {
+    "mtime": 1792610300.2310026,
+    "seen": 1792610301.459332,
+    "ast_hash": "68c70ea3a7320a7e3c00afc3f9b4137b",
+    "semantic_hash": ""
+  },
+  "app/match-tickets.tsx": {
+    "mtime": 1792610300.2310846,
+    "seen": 1792610301.459332,
+    "ast_hash": "ef7ff11fe7be12e4a4d6de4213b2e6cf",
+    "semantic_hash": ""
+  },
+  "app/member-card-full.tsx": {
+    "mtime": 1792610300.2311797,
+    "seen": 1792610301.4593332,
+    "ast_hash": "287a54454dd188faeecef3895b04022c",
+    "semantic_hash": ""
+  },
+  "app/news-detail.tsx": {
+    "mtime": 1792610300.2313583,
+    "seen": 1792610301.4593332,
+    "ast_hash": "30c7f20657c365f23bd333483c29d296",
+    "semantic_hash": ""
+  },
+  "app/notification-preferences.tsx": {
+    "mtime": 1792610300.231433,
+    "seen": 1792610301.4593332,
+    "ast_hash": "fa907ba50cb3e5772408d261ae43cbdf",
+    "semantic_hash": ""
+  },
+  "app/notifications.tsx": {
+    "mtime": 1792610300.2315106,
+    "seen": 1792610301.459334,
+    "ast_hash": "c488a339b44916e58bc546ef2ea08dd0",
+    "semantic_hash": ""
+  },
+  "app/plantel.tsx": {
+    "mtime": 1792610300.2316535,
+    "seen": 1792610301.459334,
+    "ast_hash": "cccb80de43752d59892d43aa07f5f5dd",
+    "semantic_hash": ""
+  },
+  "app/product-detail.tsx": {
+    "mtime": 1792610300.2317634,
+    "seen": 1792610301.4593349,
+    "ast_hash": "ee7d3a3632dc75424096768e63115c78",
+    "semantic_hash": ""
+  },
+  "app/profile.tsx": {
+    "mtime": 1792610300.232009,
+    "seen": 1792610301.4593349,
+    "ast_hash": "449ebf1a143ad7095de612e6d7ee87a9",
+    "semantic_hash": ""
+  },
+  "app/upgrade-membership.tsx": {
+    "mtime": 1792610300.232064,
+    "seen": 1792610301.4593349,
+    "ast_hash": "682910d3217ad3c4ff6003f7f876f1b6",
+    "semantic_hash": ""
+  },
+  "babel.config.js": {
+    "mtime": 1792610300.2574987,
+    "seen": 1792610301.459336,
+    "ast_hash": "7343417da8df90609013a05efe4f99c8",
+    "semantic_hash": ""
+  },
+  "club-config.js": {
+    "mtime": 1792610300.2576916,
+    "seen": 1792610301.459336,
+    "ast_hash": "8e39667a9bb1bd0d214e242132a680e7",
+    "semantic_hash": ""
+  },
+  "clubs/deportes-concepcion/club.json": {
+    "mtime": 1792610300.2577949,
+    "seen": 1792610301.459336,
+    "ast_hash": "5b9293c76c88d08fcee5e1f24990b9f6",
+    "semantic_hash": ""
+  },
+  "clubs/palestino/club.json": {
+    "mtime": 1792610300.2579927,
+    "seen": 1792610301.459337,
+    "ast_hash": "a647cbff07b322ceb2d6480e94eb0275",
+    "semantic_hash": ""
+  },
+  "clubs/puerto-montt/club.json": {
+    "mtime": 1792610300.2580736,
+    "seen": 1792610301.459337,
+    "ast_hash": "b3d8d5be37940c5699b12a22bc468404",
+    "semantic_hash": ""
+  },
+  "clubs/rangers/club.json": {
+    "mtime": 1792610300.2581437,
+    "seen": 1792610301.459338,
+    "ast_hash": "86d26e3914b23e625195a53a29285339",
+    "semantic_hash": ""
+  },
+  "clubs/santiago-morning/club.json": {
+    "mtime": 1792610300.2583559,
+    "seen": 1792610301.459338,
+    "ast_hash": "36153c2c4949148fc58d50627debc709",
+    "semantic_hash": ""
+  },
+  "clubs/union-espanola/club.json": {
+    "mtime": 1792610300.2585516,
+    "seen": 1792610301.459338,
+    "ast_hash": "c58ba55edfc0ba2a4eb3b128876f7f57",
+    "semantic_hash": ""
+  },
+  "components/DevClubSwitcher.tsx": {
+    "mtime": 1792610300.2588134,
+    "seen": 1792610301.459339,
+    "ast_hash": "ff7713db558e341b89dc1f5913a6e76a",
+    "semantic_hash": ""
+  },
+  "components/ErrorBoundary.tsx": {
+    "mtime": 1792610300.2588649,
+    "seen": 1792610301.459339,
+    "ast_hash": "aeef544fb1d231fadfab1b8ad88f7e29",
+    "semantic_hash": ""
+  },
+  "components/ErrorFallback.tsx": {
+    "mtime": 1792610300.2589223,
+    "seen": 1792610301.459339,
+    "ast_hash": "91a67b3b46961dd23198041cfd4edd25",
+    "semantic_hash": ""
+  },
+  "components/KeyboardAwareScrollViewCompat.tsx": {
+    "mtime": 1792610300.258979,
+    "seen": 1792610301.45934,
+    "ast_hash": "5660995b9c9e27c2b312b18fab9654c4",
+    "semantic_hash": ""
+  },
+  "components/PushNotificationHandler.tsx": {
+    "mtime": 1792610300.259171,
+    "seen": 1792610301.45934,
+    "ast_hash": "1259093938cd3c06afde9c8216ecd291",
+    "semantic_hash": ""
+  },
+  "components/ui/Button.tsx": {
+    "mtime": 1792610300.2592585,
+    "seen": 1792610301.45934,
+    "ast_hash": "1b5ed7a56d8ddf90d681c8a3e7750471",
+    "semantic_hash": ""
+  },
+  "components/ui/ErrorBox.tsx": {
+    "mtime": 1792610300.259321,
+    "seen": 1792610301.459341,
+    "ast_hash": "7f792d73a7c9e4520e7da38759c0521f",
+    "semantic_hash": ""
+  },
+  "components/ui/Input.tsx": {
+    "mtime": 1792610300.2593777,
+    "seen": 1792610301.459341,
+    "ast_hash": "2acfb6cc7d73444c282ee3b03ac15b39",
+    "semantic_hash": ""
+  },
+  "components/ui/LoadingScreen.tsx": {
+    "mtime": 1792610300.2594442,
+    "seen": 1792610301.459341,
+    "ast_hash": "e72ee4f9cb0b2af8209f4fb3e40be0eb",
+    "semantic_hash": ""
+  },
+  "constants/colors.ts": {
+    "mtime": 1792610300.2595255,
+    "seen": 1792610301.459342,
+    "ast_hash": "0a18d955600953020319c546e74c80b6",
+    "semantic_hash": ""
+  },
+  "drizzle.config.ts": {
+    "mtime": 1792610300.2595806,
+    "seen": 1792610301.459342,
+    "ast_hash": "51b0e64c197adc56bd2906e038fe9f5f",
+    "semantic_hash": ""
+  },
+  "eas.json": {
+    "mtime": 1792610300.2597659,
+    "seen": 1792610301.459342,
+    "ast_hash": "ea3b34245743630e274eb3dbc8281455",
+    "semantic_hash": ""
+  },
+  "eslint.config.js": {
+    "mtime": 1792610300.259813,
+    "seen": 1792610301.4593432,
+    "ast_hash": "bc14330e2346280672c33fa240556c96",
+    "semantic_hash": ""
+  },
+  "jest.config.js": {
+    "mtime": 1792610300.2599568,
+    "seen": 1792610301.4593432,
+    "ast_hash": "0ed63c75da5f9adff8d167b39e5f648c",
+    "semantic_hash": ""
+  },
+  "lib/api.ts": {
+    "mtime": 1792610300.2601957,
+    "seen": 1792610301.4593432,
+    "ast_hash": "51673835f6b3ecafce436bb0f3818599",
+    "semantic_hash": ""
+  },
+  "lib/cart-context.tsx": {
+    "mtime": 1792610300.260262,
+    "seen": 1792610301.459344,
+    "ast_hash": "db36a20a396fcd65a83dd3594b8a6aed",
+    "semantic_hash": ""
+  },
+  "lib/clerk-token-cache.ts": {
+    "mtime": 1792610300.260311,
+    "seen": 1792610301.459344,
+    "ast_hash": "fa34738a69e29cfbffd087f88c062aaa",
+    "semantic_hash": ""
+  },
+  "lib/club-logos.ts": {
+    "mtime": 1792610300.2605586,
+    "seen": 1792610301.459344,
+    "ast_hash": "d14754b151932efac5e1463db9994e7e",
+    "semantic_hash": ""
+  },
+  "lib/config.ts": {
+    "mtime": 1792610300.2608569,
+    "seen": 1792610301.4593449,
+    "ast_hash": "cc4b0f9faa8b2ec7b848e4ff54dcc1a6",
+    "semantic_hash": ""
+  },
+  "lib/contexts/AuthContext.tsx": {
+    "mtime": 1792610300.2611384,
+    "seen": 1792610301.4593449,
+    "ast_hash": "f2acf481f87ec87dca42a39088420763",
+    "semantic_hash": ""
+  },
+  "lib/contexts/ClubContext.tsx": {
+    "mtime": 1792610300.2613087,
+    "seen": 1792610301.4593458,
+    "ast_hash": "7ccc31d7682ee798730f6e443421d49e",
+    "semantic_hash": ""
+  },
+  "lib/demo-mode.ts": {
+    "mtime": 1792610300.2613628,
+    "seen": 1792610301.4593458,
+    "ast_hash": "0e8f837e06cdfd61ddcd709b5e19694c",
+    "semantic_hash": ""
+  },
+  "lib/dev-club-override.ts": {
+    "mtime": 1792610300.261537,
+    "seen": 1792610301.4593458,
+    "ast_hash": "5deabb4b081a5495123842ffc574ed9e",
+    "semantic_hash": ""
+  },
+  "lib/format.ts": {
+    "mtime": 1792610300.2615843,
+    "seen": 1792610301.459347,
+    "ast_hash": "eb3c89c36510a5523d41693fcdc128ce",
+    "semantic_hash": ""
+  },
+  "lib/hooks/useClerkAuth.ts": {
+    "mtime": 1792610300.2618191,
+    "seen": 1792610301.459347,
+    "ast_hash": "a80fde52debb1d732517e5a4f7f850b1",
+    "semantic_hash": ""
+  },
+  "lib/hooks/useMembership.ts": {
+    "mtime": 1792610300.2618697,
+    "seen": 1792610301.459348,
+    "ast_hash": "16ced567d0acc596e6b30cf1f158d995",
+    "semantic_hash": ""
+  },
+  "lib/http.ts": {
+    "mtime": 1792610300.2619188,
+    "seen": 1792610301.459348,
+    "ast_hash": "af0a9543080f7186324b5bb36e4a59b9",
+    "semantic_hash": ""
+  },
+  "lib/membership.ts": {
+    "mtime": 1792610300.2619739,
+    "seen": 1792610301.459348,
+    "ast_hash": "2c27f8baa6b16fa443c385cc867f31f2",
+    "semantic_hash": ""
+  },
+  "lib/mock-api-data.ts": {
+    "mtime": 1792610300.262184,
+    "seen": 1792610301.459349,
+    "ast_hash": "4d9de1e5a5f62733324526b613c8e46e",
+    "semantic_hash": ""
+  },
+  "lib/mock-data.ts": {
+    "mtime": 1792610300.262597,
+    "seen": 1792610301.459349,
+    "ast_hash": "b913d84e61f96687e7a627d579b98a46",
+    "semantic_hash": ""
+  },
+  "lib/news.ts": {
+    "mtime": 1792610300.2627566,
+    "seen": 1792610301.45935,
+    "ast_hash": "9bb5e4f7a3bdbba2983821af22d1e227",
+    "semantic_hash": ""
+  },
+  "lib/notification-utils.ts": {
+    "mtime": 1792610300.2628427,
+    "seen": 1792610301.459351,
+    "ast_hash": "8004e710dba2414b08bd3c8ded1271f3",
+    "semantic_hash": ""
+  },
+  "lib/push.ts": {
+    "mtime": 1792610300.2629254,
+    "seen": 1792610301.459351,
+    "ast_hash": "89593d6c1cba861ce08ea47a372ce3b1",
+    "semantic_hash": ""
+  },
+  "lib/query-client.ts": {
+    "mtime": 1792610300.2629824,
+    "seen": 1792610301.459351,
+    "ast_hash": "224f0f2052bd860c64b5604e2f0bbbf9",
+    "semantic_hash": ""
+  },
+  "lib/schemas.ts": {
+    "mtime": 1792610300.2631273,
+    "seen": 1792610301.459352,
+    "ast_hash": "67953cabc01148b95794d4943b680b27",
+    "semantic_hash": ""
+  },
+  "lib/squad.ts": {
+    "mtime": 1792610300.2632687,
+    "seen": 1792610301.459352,
+    "ast_hash": "f5f16b65886f391149413d26ae942fd9",
+    "semantic_hash": ""
+  },
+  "lib/store-images.ts": {
+    "mtime": 1792610300.26332,
+    "seen": 1792610301.459352,
+    "ast_hash": "5bfc7fdd2df558816ea5dc458d0c2319",
+    "semantic_hash": ""
+  },
+  "lib/theme.ts": {
+    "mtime": 1792610300.263382,
+    "seen": 1792610301.459353,
+    "ast_hash": "51cb172a7644a31a484943e9542c8b25",
+    "semantic_hash": ""
+  },
+  "metro.config.js": {
+    "mtime": 1792610300.2634351,
+    "seen": 1792610301.459353,
+    "ast_hash": "25e5a9b1cd67a2214f99223aaf1ede55",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1792610300.2651932,
+    "seen": 1792610301.459353,
+    "ast_hash": "7d0a3f834b94c2fc85fcacacf3b39648",
+    "semantic_hash": ""
+  },
+  "scripts/build.js": {
+    "mtime": 1792610300.2654622,
+    "seen": 1792610301.4593542,
+    "ast_hash": "1ffa99326d83d565163819409a1a4181",
+    "semantic_hash": ""
+  },
+  "scripts/generate-assets-from-logo.ts": {
+    "mtime": 1792610300.2655282,
+    "seen": 1792610301.4593542,
+    "ast_hash": "d3790a54a25a7716641974a2fa81b80c",
+    "semantic_hash": ""
+  },
+  "scripts/sync-club-assets.ts": {
+    "mtime": 1792610300.265585,
+    "seen": 1792610301.4593549,
+    "ast_hash": "757032e18b64f257756ebf182a283997",
+    "semantic_hash": ""
+  },
+  "scripts/write-runtime-config.js": {
+    "mtime": 1792610300.2656734,
+    "seen": 1792610301.4593549,
+    "ast_hash": "28daed8d6b678e3dcfab7bee84fabdf2",
+    "semantic_hash": ""
+  },
+  "server/index.ts": {
+    "mtime": 1792610300.265764,
+    "seen": 1792610301.4593549,
+    "ast_hash": "1f205a411781b9410b4927173ebf1373",
+    "semantic_hash": ""
+  },
+  "server/routes.ts": {
+    "mtime": 1792610300.265812,
+    "seen": 1792610301.4593558,
+    "ast_hash": "29a95890d62e608402bfb9ac1fa03935",
+    "semantic_hash": ""
+  },
+  "server/storage.ts": {
+    "mtime": 1792610300.2658596,
+    "seen": 1792610301.4593558,
+    "ast_hash": "e7b02bc4217cb29068642f0f8bcbd2c0",
+    "semantic_hash": ""
+  },
+  "shared/schema.ts": {
+    "mtime": 1792610300.2660346,
+    "seen": 1792610301.459357,
+    "ast_hash": "888af8ca2e97b528580faab6ffc7f235",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1792610300.2660825,
+    "seen": 1792610301.459357,
+    "ast_hash": "6a13518437ae70a01d75716dc761f217",
+    "semantic_hash": ""
+  },
+  "attached_assets/Pasted-Build-a-white-label-multi-tenant-football-club-mobile-a_1771341440108.txt": {
+    "mtime": 1792610300.257443,
+    "seen": 1792610301.459357,
+    "ast_hash": "63481593f592c57013c76f7ec3daef54",
+    "semantic_hash": ""
+  },
+  "replit.md": {
+    "mtime": 1792610300.2653239,
+    "seen": 1792610301.459358,
+    "ast_hash": "593db1c19faeaf810da4ce44a8d1b1d0",
+    "semantic_hash": ""
+  },
+  "server/templates/landing-page.html": {
+    "mtime": 1792610300.2659638,
+    "seen": 1792610301.459358,
+    "ast_hash": "070b0f22c823a25d76524a1f82f279d7",
+    "semantic_hash": ""
+  },
+  "assets/_default/android-icon-background.png": {
+    "mtime": 1792610300.232402,
+    "seen": 1792610301.459358,
+    "ast_hash": "2d65569cc0e2afdcea0af9f9902d4173",
+    "semantic_hash": ""
+  },
+  "assets/_default/android-icon-foreground.png": {
+    "mtime": 1792610300.2327545,
+    "seen": 1792610301.459359,
+    "ast_hash": "72e71a9c846c6aa4ae32476641a00e18",
+    "semantic_hash": ""
+  },
+  "assets/_default/android-icon-monochrome.png": {
+    "mtime": 1792610300.2328358,
+    "seen": 1792610301.459359,
+    "ast_hash": "1e097dab989759fc0b69440092ca22cd",
+    "semantic_hash": ""
+  },
+  "assets/_default/favicon.png": {
+    "mtime": 1792610300.2328882,
+    "seen": 1792610301.45936,
+    "ast_hash": "d9f444efbdfbe7931aa93beada07318a",
+    "semantic_hash": ""
+  },
+  "assets/_default/icon.png": {
+    "mtime": 1792610300.2334626,
+    "seen": 1792610301.45936,
+    "ast_hash": "267e30496f9ef125124265945ac2d1e2",
+    "semantic_hash": ""
+  },
+  "assets/_default/splash-icon.png": {
+    "mtime": 1792610300.2340355,
+    "seen": 1792610301.45936,
+    "ast_hash": "a8ebecce7b56f9cef89980c8e3a42c8d",
+    "semantic_hash": ""
+  },
+  "assets/clubs/antofagasta/splash-icon.png": {
+    "mtime": 1792610300.23471,
+    "seen": 1792610301.459361,
+    "ast_hash": "7ebb64a74460efeb0b9ecf7a50a5e6c3",
+    "semantic_hash": ""
+  },
+  "assets/clubs/deportes-concepcion/android-icon-background.png": {
+    "mtime": 1792610300.2348154,
+    "seen": 1792610301.459361,
+    "ast_hash": "9a42a0944711a87ad8bf2dcf3db24e51",
+    "semantic_hash": ""
+  },
+  "assets/clubs/deportes-concepcion/android-icon-foreground.png": {
+    "mtime": 1792610300.2353063,
+    "seen": 1792610301.459361,
+    "ast_hash": "fa428b6c29210c52f82f92cd60012126",
+    "semantic_hash": ""
+  },
+  "assets/clubs/deportes-concepcion/android-icon-monochrome.png": {
+    "mtime": 1792610300.2355967,
+    "seen": 1792610301.459362,
+    "ast_hash": "6890dc5d6d7a7906582ec9d081a292df",
+    "semantic_hash": ""
+  },
+  "assets/clubs/deportes-concepcion/favicon.png": {
+    "mtime": 1792610300.2356665,
+    "seen": 1792610301.459362,
+    "ast_hash": "c5b2c04736561d0e38f8821743d7375f",
+    "semantic_hash": ""
+  },
+  "assets/clubs/deportes-concepcion/icon.png": {
+    "mtime": 1792610300.237148,
+    "seen": 1792610301.459363,
+    "ast_hash": "526f2635598b5a6b7ffe75e67d078894",
+    "semantic_hash": ""
+  },
+  "assets/clubs/deportes-concepcion/splash-icon.png": {
+    "mtime": 1792610300.2402065,
+    "seen": 1792610301.459363,
+    "ast_hash": "3c8de7c56cf4fa68be20c56f9ae3a869",
+    "semantic_hash": ""
+  },
+  "assets/clubs/palestino/android-icon-background.png": {
+    "mtime": 1792610300.24048,
+    "seen": 1792610301.459363,
+    "ast_hash": "7b527a19055699bc354863fc7b47eafe",
+    "semantic_hash": ""
+  },
+  "assets/clubs/palestino/android-icon-foreground.png": {
+    "mtime": 1792610300.2406073,
+    "seen": 1792610301.4593642,
+    "ast_hash": "14867a065f32178ba6af9fcd315f16a8",
+    "semantic_hash": ""
+  },
+  "assets/clubs/palestino/android-icon-monochrome.png": {
+    "mtime": 1792610300.2407095,
+    "seen": 1792610301.4593642,
+    "ast_hash": "8c145062b2b73db80b1eb738fdb2c102",
+    "semantic_hash": ""
+  },
+  "assets/clubs/palestino/favicon.png": {
+    "mtime": 1792610300.2407742,
+    "seen": 1792610301.4593651,
+    "ast_hash": "658d9e673b43779997e2b1176308f758",
+    "semantic_hash": ""
+  },
+  "assets/clubs/palestino/icon.png": {
+    "mtime": 1792610300.2409804,
+    "seen": 1792610301.4593651,
+    "ast_hash": "3763b2ab29f472a75789d227e723fe36",
+    "semantic_hash": ""
+  },
+  "assets/clubs/palestino/splash-icon.png": {
+    "mtime": 1792610300.2413604,
+    "seen": 1792610301.4593651,
+    "ast_hash": "38628260ff8ed69d8bf3fb8f5f77361d",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/android-icon-background.png": {
+    "mtime": 1792610300.241683,
+    "seen": 1792610301.4593658,
+    "ast_hash": "dfb7276b8f69fe0f1f380835c4c91c2b",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/android-icon-foreground.png": {
+    "mtime": 1792610300.2421126,
+    "seen": 1792610301.4593658,
+    "ast_hash": "70e615ed06310a1259bcfc571ec73743",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/android-icon-monochrome.png": {
+    "mtime": 1792610300.2427716,
+    "seen": 1792610301.4593658,
+    "ast_hash": "8812e939d2de75677585033764542e48",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/favicon.png": {
+    "mtime": 1792610300.2428496,
+    "seen": 1792610301.4593668,
+    "ast_hash": "006ef07e201d94d20dcfe839ce78060e",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/icon.png": {
+    "mtime": 1792610300.2442884,
+    "seen": 1792610301.4593668,
+    "ast_hash": "b198ca0797394802fb01efa04dced056",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/logo-source.png": {
+    "mtime": 1792610300.2446866,
+    "seen": 1792610301.459368,
+    "ast_hash": "d19c5e8c62ee698f1dcccf9d65c17e72",
+    "semantic_hash": ""
+  },
+  "assets/clubs/puerto-montt/splash-icon.png": {
+    "mtime": 1792610300.247725,
+    "seen": 1792610301.459368,
+    "ast_hash": "a0db18d7d9833acc662828b9756970b9",
+    "semantic_hash": ""
+  },
+  "assets/clubs/rangers/android-icon-background.png": {
+    "mtime": 1792610300.2478356,
+    "seen": 1792610301.459368,
+    "ast_hash": "40f6d766d17ff4fe206777da4619e505",
+    "semantic_hash": ""
+  },
+  "assets/clubs/rangers/android-icon-foreground.png": {
+    "mtime": 1792610300.2480414,
+    "seen": 1792610301.459369,
+    "ast_hash": "d33c1fe1584a1032c0ab708e4b533780",
+    "semantic_hash": ""
+  },
+  "assets/clubs/rangers/android-icon-monochrome.png": {
+    "mtime": 1792610300.2481742,
+    "seen": 1792610301.459369,
+    "ast_hash": "1cc000fe5ac03b5c97b3621184880ae8",
+    "semantic_hash": ""
+  },
+  "assets/clubs/rangers/favicon.png": {
+    "mtime": 1792610300.248226,
+    "seen": 1792610301.459369,
+    "ast_hash": "aeee5f0977575a6e46cd06a85cd1dba0",
+    "semantic_hash": ""
+  },
+  "assets/clubs/rangers/icon.png": {
+    "mtime": 1792610300.2498586,
+    "seen": 1792610301.45937,
+    "ast_hash": "9f8fc4eca832dff786fd50b9a8d8701c",
+    "semantic_hash": ""
+  },
+  "assets/clubs/rangers/splash-icon.png": {
+    "mtime": 1792610300.2518208,
+    "seen": 1792610301.45937,
+    "ast_hash": "2060f61f8ed0b732065f028101cf3ad0",
+    "semantic_hash": ""
+  },
+  "assets/clubs/recoleta/splash-icon.png": {
+    "mtime": 1792610300.2524366,
+    "seen": 1792610301.45937,
+    "ast_hash": "52586faa34d8c450c6625c1b2dd7d21f",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santa-cruz/splash-icon.png": {
+    "mtime": 1792610300.252961,
+    "seen": 1792610301.459371,
+    "ast_hash": "9ea0d6eb12e2671e75b08835024a2b0c",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santiago-morning/android-icon-background.png": {
+    "mtime": 1792610300.2530699,
+    "seen": 1792610301.459371,
+    "ast_hash": "40f6d766d17ff4fe206777da4619e505",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santiago-morning/android-icon-foreground.png": {
+    "mtime": 1792610300.253601,
+    "seen": 1792610301.459372,
+    "ast_hash": "00036dc98e81e6299c6cc447dff3c183",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santiago-morning/android-icon-monochrome.png": {
+    "mtime": 1792610300.2537866,
+    "seen": 1792610301.459372,
+    "ast_hash": "1cc000fe5ac03b5c97b3621184880ae8",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santiago-morning/favicon.png": {
+    "mtime": 1792610300.2540336,
+    "seen": 1792610301.459372,
+    "ast_hash": "b38fae6f6fd7cceeb061c21745708721",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santiago-morning/icon.png": {
+    "mtime": 1792610300.254672,
+    "seen": 1792610301.459373,
+    "ast_hash": "b73a1621aded5ea549217657fb3b834b",
+    "semantic_hash": ""
+  },
+  "assets/clubs/santiago-morning/splash-icon.png": {
+    "mtime": 1792610300.2548656,
+    "seen": 1792610301.459373,
+    "ast_hash": "b73a1621aded5ea549217657fb3b834b",
+    "semantic_hash": ""
+  },
+  "assets/images/android-icon-background.png": {
+    "mtime": 1792610300.2549903,
+    "seen": 1792610301.459373,
+    "ast_hash": "2d65569cc0e2afdcea0af9f9902d4173",
+    "semantic_hash": ""
+  },
+  "assets/images/android-icon-foreground.png": {
+    "mtime": 1792610300.2551503,
+    "seen": 1792610301.4593742,
+    "ast_hash": "72e71a9c846c6aa4ae32476641a00e18",
+    "semantic_hash": ""
+  },
+  "assets/images/android-icon-monochrome.png": {
+    "mtime": 1792610300.2552257,
+    "seen": 1792610301.4593742,
+    "ast_hash": "1e097dab989759fc0b69440092ca22cd",
+    "semantic_hash": ""
+  },
+  "assets/images/demo-profile.png": {
+    "mtime": 1792610300.255422,
+    "seen": 1792610301.4593751,
+    "ast_hash": "a5214b01c64f671883e7cbb1e0e7dd4f",
+    "semantic_hash": ""
+  },
+  "assets/images/favicon.png": {
+    "mtime": 1792610300.2554748,
+    "seen": 1792610301.4593751,
+    "ast_hash": "d9f444efbdfbe7931aa93beada07318a",
+    "semantic_hash": ""
+  },
+  "assets/images/icon.png": {
+    "mtime": 1792610300.2556596,
+    "seen": 1792610301.4593751,
+    "ast_hash": "267e30496f9ef125124265945ac2d1e2",
+    "semantic_hash": ""
+  },
+  "assets/images/splash-icon.png": {
+    "mtime": 1792610300.255846,
+    "seen": 1792610301.459376,
+    "ast_hash": "a8ebecce7b56f9cef89980c8e3a42c8d",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-away-2025.jpg": {
+    "mtime": 1792610300.2563114,
+    "seen": 1792610301.459376,
+    "ast_hash": "52d58ed56fe517b2630d74d501f9def5",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-away-2026-alt.jpg": {
+    "mtime": 1792610300.2564952,
+    "seen": 1792610301.459376,
+    "ast_hash": "d6f968fdb5c9d16a94bcd679a4543769",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-away-2026.jpg": {
+    "mtime": 1792610300.2566428,
+    "seen": 1792610301.4593768,
+    "ast_hash": "77cd0d0b768d68e504162efbd6fdbc9f",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-home-2025.jpg": {
+    "mtime": 1792610300.2568047,
+    "seen": 1792610301.4593768,
+    "ast_hash": "008544739ea9f0dcedf69f1129946d79",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-home-2026-alt.jpg": {
+    "mtime": 1792610300.256949,
+    "seen": 1792610301.459378,
+    "ast_hash": "4718884a02756edcdac886eb296a2518",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-home-2026.jpg": {
+    "mtime": 1792610300.2570665,
+    "seen": 1792610301.459378,
+    "ast_hash": "c8c332be4f2095d8454b1ac52eca59eb",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-third-2026-alt.jpg": {
+    "mtime": 1792610300.2572215,
+    "seen": 1792610301.459378,
+    "ast_hash": "4a30217572462414967af7426c4df9fc",
+    "semantic_hash": ""
+  },
+  "assets/store/pm-third-2026.jpg": {
+    "mtime": 1792610300.2573402,
+    "seen": 1792610301.459379,
+    "ast_hash": "fce504be20b432f458f00fc6365962f2",
+    "semantic_hash": ""
+  }
+}
