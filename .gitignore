@@ -49,3 +49,6 @@ lib/generated-config.json
 
 # Generated public assets (favicon copied per variant)
 public/favicon.png
+# graphify
+graphify-out/cache/
+graphify-out/cost.json
